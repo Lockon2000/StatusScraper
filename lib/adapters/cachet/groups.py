@@ -4,51 +4,14 @@ import requests
 
 from configs import dtadCachetAPI
 from configs import APIKey
-from enabledProviders import modules
-from lib.objects.components import deleteComponent
-from lib.utilities.cachet import getCachetGroups
-from lib.utilities.cachet import getCachetComponents
 from lib.utilities.tools import log
 
 
 # Global options
 debug = False
+objectsPerPage = 100000
 
 
-# Main functionality
-def CRUDGroups():
-    cachetGroups = getCachetGroups("group: False")
-    enabledGroups = [module.providerName for module in modules]
-
-    # Check which groups are already there and mark them accordingly.
-    # If a group is not found if will be created.
-    for group in enabledGroups:
-        if group in cachetGroups:
-            cachetGroups[group] = True
-        else:
-            createGroup(group)
-
-    # All groups not marked previously will be deleted
-    groupIDs = getCachetGroups("group: id")
-    componentIDs = getCachetComponents("group: {component: id}")
-    for group in cachetGroups:
-        if cachetGroups[group] == False:
-            for componentID in componentIDs[group].values():
-                deleteComponent(componentID)
-            deleteGroup(groupIDs[group])
-
-    if debug:
-        print("Groups in Cachet before they where updated:")
-        pprint(cachetGroups.keys())
-        print("\nEnabled Groups:")
-        pprint(enabledGroups)
-        print("\nGroups to IDs dict:")
-        pprint(groupIDs)
-        print("\nComponents to IDs dict:")
-        pprint(componentIDs)
-
-
-# Helper functions
 def createGroup(groupName):
     payload = {}
 
@@ -73,6 +36,32 @@ def createGroup(groupName):
     else:
         log("Success", "Created the group {name}".format(name=groupName))
 
+def readGroups(format="group: id"):
+    result = {}
+
+    try:
+        response = requests.get("{dtadCachetAPI}/components/groups?per_page={objectsPerPage}".format(
+                                                                                    dtadCachetAPI=dtadCachetAPI,
+                                                                                    objectsPerPage=objectsPerPage
+                                                                                )
+        )
+        response.raise_for_status()
+    except requests.HTTPError as e:
+        log("Error", "Coulden't retrieve the Groups from Cachet!!!")
+        log("Error", "Unsuccessful HTTP Request! Error Code {}".format(str(e)))
+
+    if format == "group: id":
+        for group in response.json()['data']:
+            result[group['name']] = group['id']
+    elif format == "id: group":
+        for group in response.json()['data']:
+            result[group['id']] = group['name']
+    elif format == "group: False":
+        for group in response.json()['data']:
+            result[group['name']] = False
+
+    return result
+
 def deleteGroup(groupID):
     try:
         response = requests.delete("{dtadCachetAPI}/components/groups/{id}".format(dtadCachetAPI=dtadCachetAPI, id=groupID),
@@ -87,8 +76,16 @@ def deleteGroup(groupID):
 
 
 if __name__ == '__main__':
-    # Update Cachet groups database
+    # Test module
     from pprint import pprint
     debug = True
 
-    CRUDGroups()
+    # Testing readGroups
+    print("# readGroups")
+    print("## group: id")
+    pprint(readGroups("group: id"))
+    print("## id: group")
+    pprint(readGroups("id: group"))
+    print("## group: False")
+    pprint(readGroups("group: False"))
+    print("------------------\n\n")

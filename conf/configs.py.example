@@ -1,6 +1,6 @@
 dtadCachetAPI = "<API-Endpoint>"    # e.g. "https://cachet.workxl.de/api/v1"
 APIKey = "<key>"
-logFile = "<log-file>"              # e.g. "logs/statusscrapper.log"
+logFile = "<log-file>"              # e.g. "logs/statusscraper.log"
 logLevel = "Normal"
 
 

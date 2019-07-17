@@ -1,18 +1,16 @@
-from lib.utilities import *
-from lib.init import init
-from lib.objects.groups import CRUDGroups
-from lib.objects.components import CRUDComponents
-from lib.objects.incidents import CRUDIncidents
-from lib.objects.maintenances import CRUDMaintenances
-
+from lib.internals.tasks.init import init
+from lib.internals.tasks.crud import CRUD
+from lib.internals.tasks.finish import finish
 
 def main():
-    init()
+    # Make sure the ground work ist set
+    providers = init()
 
-    CRUDGroups()
-    CRUDComponents()
-    CRUDIncidents()
-    # CRUDMaintenances()      # Irrelevant for now!!
+    # Actual porpuse of program
+    CRUD(providers)
+
+    # Conclude any remaining work
+    finish()
 
 
 if __name__ == "__main__":

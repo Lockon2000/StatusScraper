@@ -4,54 +4,13 @@ import requests
 
 from configs import dtadCachetAPI
 from configs import APIKey
-from enabledProviders import incidentFunctions
-from lib.objects.components import updateComponentStatus
-from lib.objects.components import latestComponentStatuses
-from lib.utilities.cachet import getCachetComponents
-from lib.utilities.cachet import getCachetIncident
-from lib.utilities.hashing import hashIncident
 from lib.utilities.tools import log
+from lib.utilities.hashing import hashIncident
 
 
 # Global options
 debug = False
-
-
-# Main functionality
-def CRUDIncidents():
-    incidentIDs = getCachetIncident("incidentHash: id")
-
-    # Check which incidents and update them if already there or create them otherwise.
-    for providerName, getIncidents in incidentFunctions:
-        for incident in getIncidents():
-            componentID = incident['component_id']
-            componentStatus = incident['component_status']
-            currentComponentStatus = latestComponentStatuses.get(componentID, 0)
-            latestComponentStatuses[componentID] = max(componentStatus, currentComponentStatus)
-
-            incidentHash = hashIncident(incident)
-            if incidentHash in incidentIDs:
-                numberOfNewUpdates = len(incident['updates']) - len(getIncidentUpdates(incidentIDs[incidentHash]))
-                if numberOfNewUpdates > 0:
-                    updateIncident(incidentIDs[incidentHash], incident, numberOfNewUpdates)
-                else:
-                    log("Info", "Incident {name} with the id {id} is up-to-date".format(name=incident['name'],
-                                                                                        id=incidentIDs[incidentHash]
-                                                                                    )
-                    )
-            else:
-                createIncident(incident)
-
-    for componentID, latestComponentStatus in latestComponentStatuses.items():
-        cachetComponentStatuses = getCachetComponents("id: status")
-        if latestComponentStatus != cachetComponentStatuses[componentID]:
-            updateComponentStatus(componentID, latestComponentStatus)
-
-    if debug:
-        print("Incidents in Cachet before they where updated:")
-        pprint(incidentIDs)
-        print("\nEnabled Incidents:")
-        pprint(incidentFunctions)
+objectsPerPage = 100000
 
 
 # Helper functions
@@ -87,6 +46,44 @@ def createIncident(incident):
         incidentID = response.json()['data']['id']
         numberOfNewUpdates = len(incident['updates'])
         updateIncident(incidentID, incident, numberOfNewUpdates)
+
+def readIncidents(format="incidentHash: id"):
+    result = {}
+    
+    try:
+        response = requests.get("{dtadCachetAPI}/incidents?per_page={objectsPerPage}".format(
+                                                                            dtadCachetAPI=dtadCachetAPI,
+                                                                            objectsPerPage=objectsPerPage
+                                                                        )
+        )
+        response.raise_for_status()
+    except requests.HTTPError as e:
+        log("Error", "Coulden't retrieve the Incidents from Cachet!!!")
+        log("Error", "Unsuccessful HTTP Request! Error Code {}".format(str(e)))
+
+    if format == "incidentHash: id":
+        for incident in response.json()['data']:
+            result[hashIncident(incident)] = incident['id']
+    if format == "id: status":
+        for incident in response.json()['data']:
+            result[incident['id']] = incident['status']
+
+    return result
+
+def readIncidentUpdates(incidentID):
+    try:
+        response = requests.get("{dtadCachetAPI}/incidents/{incidentID}/updates".format(
+                                                                dtadCachetAPI=dtadCachetAPI,
+                                                                incidentID=incidentID
+                                                            )
+        )
+        response.raise_for_status()
+    except requests.HTTPError as e:
+        log("Error", "Couldn't get the updates of the incident with the id {}".format(incidentID))
+        log("Error", "Unsuccessful HTTP GET Request! Error Code {}".format(str(e)))
+        log("Error", str(response.text))
+    
+    return response.json()['data']
 
 def updateIncident(incidentID, incident, numberOfNewUpdates):
     payload = {}
@@ -144,26 +141,16 @@ def updateIncident(incidentID, incident, numberOfNewUpdates):
                                             )
         )
 
-def getIncidentUpdates(incidentID):
-    try:
-        response = requests.get("{dtadCachetAPI}/incidents/{incidentID}/updates".format(
-                                                                dtadCachetAPI=dtadCachetAPI,
-                                                                incidentID=incidentID
-                                                            )
-        )
-        response.raise_for_status()
-    except requests.HTTPError as e:
-        log("Error", "Couldn't get the updates of the incident with the id {}".format(incidentID))
-        log("Error", "Unsuccessful HTTP GET Request! Error Code {}".format(str(e)))
-        log("Error", str(response.text))
-    
-    return response.json()['data']
-
 
 if __name__ == "__main__":
     # Update Cachet incidents database
     from pprint import pprint
     debug = True
 
-    CRUDIncidents()
-
+    # Testing readIncidents
+    print("# readIncidents")
+    print("## incidentHash: id")
+    pprint(readIncidents("incidentHash: id"))
+    print("## id: status")
+    pprint(readIncidents("id: status"))
+    print("------------------\n\n")

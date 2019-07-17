@@ -1,0 +1,2 @@
+def insureLogging():
+    pass

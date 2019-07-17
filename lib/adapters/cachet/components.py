@@ -4,53 +4,14 @@ import requests
 
 from configs import dtadCachetAPI
 from configs import APIKey
-from enabledProviders import componentFunctions
-from lib.utilities.cachet import getCachetComponents
 from lib.utilities.tools import log
 
 
 # Global options
-latestComponentStatuses = {}
 debug = False
+objectsPerPage = 100000
 
 
-# Main functionality
-def CRUDComponents():
-    cachetComponentExistences = getCachetComponents("group: {component: False}")
-    cachetComponentIDs = getCachetComponents("group: {component: id}")
-
-    # Check which components are already there and mark them accordingly.
-    # If a component is not found if will be created.
-    for providerName, getComponents in componentFunctions:
-        groupName = providerName
-        for component in getComponents():
-            if component['name'] in cachetComponentExistences[groupName]:
-                cachetComponentExistences[groupName][component['name']] = True
-
-                componentID = cachetComponentIDs[groupName][component['name']]
-                componentStatus = component['status']
-                currentComponentStatus = latestComponentStatuses.get(componentID, 0)
-                latestComponentStatuses[componentID] = max(componentStatus, currentComponentStatus)
-            else:
-                createComponent(component)
-
-    # All components not marked previously will be deleted
-    componentIDs = getCachetComponents("group: {component: id}")
-    for group in cachetComponentExistences:
-        for component in cachetComponentExistences[group]:
-            if cachetComponentExistences[group][component] == False:
-                deleteComponent(componentIDs[group][component])
-
-    if debug:
-        print("Components in Cachet before they where updated:")
-        pprint(cachetComponentExistences)
-        print("\nEnabled Components:")
-        pprint(componentFunctions)
-        print("\nComponents to IDs dict:")
-        pprint(componentIDs)
-
-
-# Helper functions
 def createComponent(component):
     payload = {}
 
@@ -78,7 +39,52 @@ def createComponent(component):
                                                                                 )
         )
 
-def updateComponentStatus(componentID, componentStatus):
+def readComponents(format="group: {component: id}"):
+    result = {}
+
+    try:
+        response = requests.get("{dtadCachetAPI}/components?per_page={objectsPerPage}".format(
+                                                                            dtadCachetAPI=dtadCachetAPI,
+                                                                            objectsPerPage=objectsPerPage
+                                                                        )
+        )
+        response.raise_for_status()
+    except requests.HTTPError as e:
+        log("Error", "Coulden't retrieve the Components from Cachet!!!")
+        log("Error", "Unsuccessful HTTP Request! Error Code {}".format(str(e)))
+
+    groups = getCachetGroups("id: group")
+    if format == "group: {component: id}":
+        for group in groups.values():
+            result[group] = {}
+
+        for component in response.json()['data']:
+            result[groups[component['group_id']]][component['name']] = component['id']
+    elif format == "group: {component: False}":
+        for group in groups.values():
+            result[group] = {}
+
+        for component in response.json()['data']:
+            result[groups[component['group_id']]][component['name']] = False
+    elif format == "groupID: {component: id}":
+        for groupID in groups:
+            result[groupID] = {}
+
+        for component in response.json()['data']:
+            result[component['group_id']][component['name']] = component['id']
+    elif format == "groupID: {component: False}":
+        for groupID in groups:
+            result[groupID] = {}
+
+        for component in response.json()['data']:
+            result[component['group_id']][component['name']] = False
+    elif format == "id: status":
+        for component in response.json()['data']:
+            result[component['id']] = component['status']
+
+    return result
+
+def updateComponent(componentID, componentStatus):
     payload = {}
 
     payload['status'] = componentStatus
@@ -122,4 +128,16 @@ if __name__ == "__main__":
     from pprint import pprint
     debug = True
 
-    CRUDComponents()
+    # Testing readComponents
+    print("# readComponents")
+    print("## group: {component: id}")
+    pprint(readComponents("group: {component: id}"))
+    print("## group: {component: False}")
+    pprint(readComponents("group: {component: False}"))
+    print("## groupID: {component: id}")
+    pprint(readComponents("groupID: {component: id}"))
+    print("## groupID: {component: False}")
+    pprint(readComponents("groupID: {component: False}"))
+    print("## id: status")
+    pprint(readComponents("id: status"))
+    print("------------------\n\n")
