@@ -1,0 +1,6 @@
+__pycache__
+enabledProviders/*
+!enabledProviders/__init__.py
+!enabledProviders/__main__.py
+*.pyc
+*.log

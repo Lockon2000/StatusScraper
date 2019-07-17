@@ -1,0 +1,38 @@
+dtadCachetAPI = "<API-Endpoint>"    # e.g. "https://cachet.workxl.de/api/v1"
+APIKey = "<key>"
+logFile = "<log-file>"              # e.g. "logs/statusscrapper.log"
+logLevel = "Normal"
+
+
+# Blacklist for components
+componentsBlacklist = {
+    "<first-provider-name>": [
+
+    ],
+
+    "<second-provider-name>": [
+
+    ]
+}
+
+# Blacklist for incidents
+incidentsBlacklist = {
+    "<first-provider-name>": [
+
+    ],
+
+    "<second-provider-name>": [
+
+    ]
+}
+
+# Blacklist for maintenances
+maintenancesBlacklist = {
+    "<first-provider-name>": [
+
+    ],
+
+    "<second-provider-name>": [
+
+    ]
+}

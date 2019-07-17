@@ -1,0 +1,50 @@
+---
+- name: Install CachetBot
+  become: true
+
+  vars:
+    apppath: /srv/www/cachetbot
+    installpath: /srv/www/cachetbot-install/  # must end with a slash
+
+  tasks:
+    - name: Create CachetBot Directory
+      file:
+        path: "{{ apppath }}"
+        state: directory
+
+    - name: Install pip3 with apt
+      apt:
+        name: python3-pip
+        state: latest
+
+    - name: Install pipenv with pip3
+      pip:
+        name: pipenv
+        state: latest
+
+    - name: Copy the CachetBot app to install path
+      copy:
+        src: "{{ installpath }}"
+        dest: "{{ apppath }}"
+
+    - name: gather all .py and .sh scripts
+      find:
+        paths: "{{ apppath }}"
+        patterns: '*.py,*.sh'
+      register: scriptFiles
+
+    - name: Set permissions for script files
+      file:
+        path: "{{ item.path }}"
+        mode: a+x
+      with_items: "{{ scriptFiles.files }}"
+
+    - name: "Install project dependencies with pipenv"
+      shell: pipenv sync
+      args:
+        chdir: "{{ apppath }}"
+
+    - name: Make a cronjob that runs every minute
+      cron:
+        name: "run cachetbot"
+        job: "{{ apppath }}/cachetbot.sh"
