@@ -2,14 +2,13 @@ import json
 
 import requests
 
-from configs import dtadCachetAPI
-from configs import APIKey
-from lib.utilities.tools import log
-from lib.utilities.hashing import hashIncident
+from conf.configs import API
+from conf.configs import APIKey
+from lib.internals.utilities.tools import log
+from lib.internals.utilities.hashing import hashIncident
 
 
 # Global options
-debug = False
 objectsPerPage = 100000
 
 
@@ -141,16 +140,3 @@ def updateIncident(incidentID, incident, numberOfNewUpdates):
                                             )
         )
 
-
-if __name__ == "__main__":
-    # Update Cachet incidents database
-    from pprint import pprint
-    debug = True
-
-    # Testing readIncidents
-    print("# readIncidents")
-    print("## incidentHash: id")
-    pprint(readIncidents("incidentHash: id"))
-    print("## id: status")
-    pprint(readIncidents("id: status"))
-    print("------------------\n\n")

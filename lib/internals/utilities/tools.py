@@ -1,5 +1,4 @@
 from os import makedirs
-from os.path import dirname
 from datetime import datetime
 from locale import setlocale
 from locale import LC_ALL
@@ -11,16 +10,17 @@ from requests import Timeout
 from requests import packages
 from bs4 import BeautifulSoup
 
-from configs import logFile
-from configs import logLevel
-from lib.utilities.formatting import buildLogEntry
+from conf.configs import logPath
+from conf.configs import mainLogFile
+from conf.configs import logLevel
+from lib.internals.utilities.formatting import buildLogEntry
 
 
 # Global options
 packages.urllib3.disable_warnings()
 setlocale(LC_ALL, "")
 debug = False
-makedirs(dirname(logFile), exist_ok=True)
+makedirs(logPath, exist_ok=True)
 
 
 def getThenParse(url, headers=None, cookies=None):
@@ -49,7 +49,7 @@ def log(logType, message):
 # elif logType == "Success":
 # elif logType == "Error":
 # else:
-    with open(logFile, "a") as file:
+    with open(mainLogFile, "a") as file:
         file.write(buildLogEntry(date, logType, message))
 
 # must be revised

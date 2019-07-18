@@ -1,6 +1,7 @@
 adapter = "cachet"
 enabledProviders = [
-    
+    "nfon",
+    "domainfactory"
 ]
 API = "http://cachet.workxl.de/api/v1"
 APIKey = "Y9uZZFxfk61FacpuxyWc"

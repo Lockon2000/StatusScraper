@@ -1,7 +1,7 @@
 from lib.internals.utilities.verfication import verifyConfigurations
 from lib.internals.utilities.verfication import verifyAdapters
 from lib.internals.utilities.verfication import verifyProviders
-from lib.internals.utilities.insurance import insureLogging
+from lib.internals.utilities.assurance import ensureLogging
 from conf.config import enabledProviders
 
 
@@ -16,7 +16,7 @@ def init():
 
 
     # Insurances:
-    insureLogging()
+    ensureLogging()
 
     # Needed variables for the CRUD function:
     providers = {
@@ -28,11 +28,11 @@ def init():
 
     providers.update({
         "componentFunctions": [
-            (module.providerName, module.getComponents)
+            module.getComponents
             for module in providers["modules"]
         ],
         "incidentFunctions": [
-            (module.providerName, module.getIncidents)
+            module.getIncidents
             for module in providers["modules"]
         ]
     })

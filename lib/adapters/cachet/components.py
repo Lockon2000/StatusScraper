@@ -2,13 +2,13 @@ import json
 
 import requests
 
-from configs import dtadCachetAPI
-from configs import APIKey
-from lib.utilities.tools import log
+from conf.configs import API
+from conf.configs import APIKey
+from lib.internals.utilities.tools import log
+from .groups import readGroups
 
 
 # Global options
-debug = False
 objectsPerPage = 100000
 
 
@@ -23,7 +23,7 @@ def createComponent(component):
     payload['enabled'] = 1
 
     try:
-        response = requests.post("{}/components".format(dtadCachetAPI),
+        response = requests.post("{}/components".format(API),
                                 data=json.dumps(payload),
                                 headers={'X-Cachet-Token': APIKey,
                                          'Content-Type': "application/json"})
@@ -43,8 +43,8 @@ def readComponents(format="group: {component: id}"):
     result = {}
 
     try:
-        response = requests.get("{dtadCachetAPI}/components?per_page={objectsPerPage}".format(
-                                                                            dtadCachetAPI=dtadCachetAPI,
+        response = requests.get("{API}/components?per_page={objectsPerPage}".format(
+                                                                            API=API,
                                                                             objectsPerPage=objectsPerPage
                                                                         )
         )
@@ -53,34 +53,47 @@ def readComponents(format="group: {component: id}"):
         log("Error", "Coulden't retrieve the Components from Cachet!!!")
         log("Error", "Unsuccessful HTTP Request! Error Code {}".format(str(e)))
 
-    groups = getCachetGroups("id: group")
+    groups = readGroups("id: group")
     if format == "group: {component: id}":
-        for group in groups.values():
-            result[group] = {}
-
-        for component in response.json()['data']:
-            result[groups[component['group_id']]][component['name']] = component['id']
+        for groupID, group in groups.items():
+            result[group] = {
+                component['name']: component['id']
+                for component in response.json()['data']
+                if groupID == component['group_id']
+            }
     elif format == "group: {component: False}":
-        for group in groups.values():
-            result[group] = {}
-
-        for component in response.json()['data']:
-            result[groups[component['group_id']]][component['name']] = False
+        for groupID, group in groups.items():
+            result[group] = {
+                component['name']: False
+                for component in response.json()['data']
+                if groupID == component['group_id']
+            }
     elif format == "groupID: {component: id}":
-        for groupID in groups:
-            result[groupID] = {}
-
-        for component in response.json()['data']:
-            result[component['group_id']][component['name']] = component['id']
+        for groupID, group in groups.items():
+            result[groupID] = {
+                component['name']: component['id']
+                for component in response.json()['data']
+                if groupID == component['group_id']
+            }
     elif format == "groupID: {component: False}":
-        for groupID in groups:
-            result[groupID] = {}
-
-        for component in response.json()['data']:
-            result[component['group_id']][component['name']] = False
+        for groupID, group in groups.items():
+            result[groupID] = {
+                component['name']: False
+                for component in response.json()['data']
+                if groupID == component['group_id']
+            }
     elif format == "id: status":
-        for component in response.json()['data']:
-            result[component['id']] = component['status']
+        result = {
+            component['id']: component['status']
+            for component in response.json()['data']
+        }
+    elif format == "group: components list":
+        for groupID, group in groups.items():
+            result[group] = [
+                component['name']
+                for component in response.json()['data']
+                if groupID == component['group_id']
+            ]
 
     return result
 
@@ -90,8 +103,8 @@ def updateComponent(componentID, componentStatus):
     payload['status'] = componentStatus
 
     try:
-        response = requests.put("{dtadCachetAPI}/components/{componentID}".format(
-                                                            dtadCachetAPI = dtadCachetAPI,
+        response = requests.put("{API}/components/{componentID}".format(
+                                                            API = API,
                                                             componentID = componentID
                                                         ),
                                 data = json.dumps(payload),
@@ -108,8 +121,8 @@ def updateComponent(componentID, componentStatus):
 
 def deleteComponent(componentID):
     try:
-        response = requests.delete("{dtadCachetAPI}/components/{id}".format(
-                                                        dtadCachetAPI=dtadCachetAPI, 
+        response = requests.delete("{API}/components/{id}".format(
+                                                        API=API, 
                                                         id=componentID
                                                     ),
                                    headers={'X-Cachet-Token': APIKey}
@@ -122,22 +135,3 @@ def deleteComponent(componentID):
     else:
         log("Success", "Deleted the component with the id {id}".format(id=componentID))
 
-
-if __name__ == "__main__":
-    # Update Cachet components database
-    from pprint import pprint
-    debug = True
-
-    # Testing readComponents
-    print("# readComponents")
-    print("## group: {component: id}")
-    pprint(readComponents("group: {component: id}"))
-    print("## group: {component: False}")
-    pprint(readComponents("group: {component: False}"))
-    print("## groupID: {component: id}")
-    pprint(readComponents("groupID: {component: id}"))
-    print("## groupID: {component: False}")
-    pprint(readComponents("groupID: {component: False}"))
-    print("## id: status")
-    pprint(readComponents("id: status"))
-    print("------------------\n\n")

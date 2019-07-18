@@ -1,3 +1,4 @@
-from . import groups
-from . import components
-from . import incidents
+from .groups import *
+from .components import *
+from .incidents import *
+
