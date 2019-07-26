@@ -1,38 +1,18 @@
-dtadCachetAPI = "<API-Endpoint>"    # e.g. "https://cachet.workxl.de/api/v1"
-APIKey = "<key>"
-logFile = "<log-file>"              # e.g. "logs/statusscraper.log"
-logLevel = "Normal"
+adapter = 
+API = 
+APIKey = 
+logPath = 
+mainLogFile = 
+errorLogFile = 
+logLevel = 
 
+enabledProviders = [
+    "<provider1>",              # case is ignored
+    "<provider2>"
+]
 
-# Blacklist for components
-componentsBlacklist = {
-    "<first-provider-name>": [
-
-    ],
-
-    "<second-provider-name>": [
-
-    ]
-}
-
-# Blacklist for incidents
-incidentsBlacklist = {
-    "<first-provider-name>": [
-
-    ],
-
-    "<second-provider-name>": [
-
-    ]
-}
-
-# Blacklist for maintenances
-maintenancesBlacklist = {
-    "<first-provider-name>": [
-
-    ],
-
-    "<second-provider-name>": [
-
+manualComponents = {
+    "<provider1>": [            # case is ignored
+        "<manual-component>"    # case is ignored
     ]
 }

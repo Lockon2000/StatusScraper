@@ -6,15 +6,8 @@ import re
 from lib.utilities.formatting import buildIncidentMessage
 from lib.utilities.formatting import buildIncidentUpdateMessage
 from lib.utilities.tools import getThenParse
-from lib.utilities.wrappers import componentsGetterWrapper
-from lib.utilities.wrappers import incidentsGetterWrapper
-from lib.utilities.wrappers import maintenancesGetterWrapper
 from lib.utilities.cachet import getCachetGroups
 from lib.utilities.cachet import getCachetComponents
-from lib.utilities.filtering import isRelevantComponent
-from lib.utilities.filtering import isRelevantIncident
-from lib.utilities.filtering import isRelevantMaintenance
-from lib.utilities.hashing import setIncidentMarker
 
 
 providerName = "HubSpot"
@@ -25,7 +18,6 @@ debug = False
 
 
 # Components Scrapper ----------------------------------------------------------------------
-@componentsGetterWrapper(providerName)
 def getComponents():
     components = []
 
@@ -74,8 +66,7 @@ def getComponents():
             'provider': provider
         }
 
-        if isRelevantComponent(providerName, component):
-            components.append(component)
+        components.append(component)
 
     return components
 
@@ -85,7 +76,6 @@ def getComponents():
 
 
 # Incidents Scrapper ---------------------------------------------------------------------
-@incidentsGetterWrapper(providerName)
 def getIncidents():
     incidents = []
 
@@ -124,9 +114,7 @@ def getIncidents():
             'link': link
         }
 
-        if isRelevantIncident(providerName, incident):
-            setIncidentMarker(incident)
-            incidents.append(incident)
+        incidents.append(incident)
 
     return incidents
 
@@ -316,5 +304,4 @@ if __name__ == '__main__':
     pprint(getComponents())
     print("-----------------Incidents-------------------")
     pprint(getIncidents())
-    # print("-----------------Maintenances----------------")
-    # pprint(getMaintenances())
+

@@ -1,0 +1,21 @@
+componentsBlacklist = {
+    "<provider1>": [    # Must be correctly cased
+        r"<regex1>",    # Casing can be ignored
+        r"<regex2>"
+    ],
+
+    "<provider2>": [
+        r"<regex1>"
+    ]
+}
+
+incidentsBlacklist = {
+    "<provider1>": [    # Must be correctly cased
+        r"<regex1>",    # Casing can be ignored
+        r"<regex2>"
+    ],
+
+    "<provider2>": [
+        r"<regex1>"
+    ]
+}

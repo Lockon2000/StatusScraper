@@ -1,11 +1,16 @@
 adapter = "cachet"
-enabledProviders = [
-    "nfon",
-    "domainfactory"
-]
 API = "http://cachet.workxl.de/api/v1"
-APIKey = "Y9uZZFxfk61FacpuxyWc"
+APIKey = ""
 logPath = "logs/"
 mainLogFile = "statusscraper.log"
 errorLogFile = "error.log"
 logLevel = "Normal"
+
+enabledProviders = [
+    "nfon",
+    "domainfactory"
+]
+
+manualComponents = [
+    
+]

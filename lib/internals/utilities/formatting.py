@@ -1,12 +1,3 @@
-# Global options
-debug = False
-
-
-def buildLogEntry(date ,logType, message):
-    entry = "### {date} - {logType} - {message}\n\n".format(date=date, logType=logType, message=message)
-
-    return entry
-
 def buildIncidentMessage(**arguments):
     linkMarkdown = "[Link]({link})".format(link=arguments['link'])
 
@@ -24,10 +15,3 @@ def buildIncidentUpdateMessage(date, verbalStatus, info):
 
     return message
 
-
-if __name__ == '__main__':
-    # Test module
-    from pprint import pprint
-    debug = True
-
-    pprint("No Tests yet!")

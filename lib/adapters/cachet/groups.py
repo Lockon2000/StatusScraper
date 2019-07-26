@@ -1,84 +1,94 @@
 import json
-
 import requests
 
 from conf.configs import API
 from conf.configs import APIKey
-from lib.internals.utilities.tools import log
 
 
 # Global options
 objectsPerPage = 100000
 
-
+# This function creates a group at cachet
 def createGroup(groupName):
-    payload = {}
+    # Input:
+    #   groupName: A string with the name of the group to be created.
+    # Output:
+    #   succeeded: Will return a dict with the response data containing required information about the created gourp.
+    #              The required information is specified in the docs at groups under adapters.
+    #   failed: Will raise a requests.HTTPError exception.
 
-    payload['name'] = groupName
+    payload = {
+        'name':         groupName,
+        # Whether the group is publicly visible or not.
+        # NOTE: this key value pair is not documented in the API docs. It should therefore be
+        # tested if it has any effect or not at the nearest opportunity.
+        'visible':      1,
+        # Different options for 'collapsed':
+        # 0: never collapsed
+        # 1: always collapsed
+        # 2: collapsed as long as there are no problems
+        'collapsed':    1
+    }
 
-    payload['visible'] = 1      
-    payload['collapsed'] = 1    # 0: never collapsed
-                                # 1: always collapsed
-                                # 2: collapsed as long as there are no problems
+    # Make an authenticated post request to the appropriate end point to create the group
+    response = requests.post("{API}/components/groups".format(API=API),
+                             data=json.dumps(payload),
+                             headers={
+                                'X-Cachet-Token': APIKey,
+                                'Content-Type': "application/json"
+                            })
+    # Raise HTTPError for all unsuccessful status codes.
+    response.raise_for_status()
 
-    try:
-        response = requests.post("{}/components/groups".format(API),
-                                data=json.dumps(payload),
-                                headers={'X-Cachet-Token': APIKey,
-                                         'Content-Type': "application/json"})
-        response.raise_for_status()
-        return response
-    except requests.HTTPError as e:
-        log("Error", "Coulden't create the group {}".format(groupName))
-        log("Error", "Unsuccessful HTTP POST Request! Error Code {}".format(str(e)))
-        log("Error", str(response.text))
-    else:
-        log("Success", "Created the group {name}".format(name=groupName))
-
-def readGroups(format="group: id"):
-    try:
-        response = requests.get("{API}/components/groups?per_page={objectsPerPage}".format(
-                                                                                    API=API,
-                                                                                    objectsPerPage=objectsPerPage
-                                                                                )
-        )
-        response.raise_for_status()
-    except requests.HTTPError as e:
-        log("Error", "Coulden't retrieve the Groups from Cachet!!!")
-        log("Error", "Unsuccessful HTTP Request! Error Code {}".format(str(e)))
-
-    if format == "group: id":
-        result = {
-            group['name']: group['id']
-            for group in response.json()['data']
-        }
-    elif format == "id: group":
-        result = {
-            group['id']: group['name']
-            for group in response.json()['data']
-        }
-    elif format == "group: False":
-        result = {
-            group['name']: False
-            for group in response.json()['data']
-        }
-    elif format == "list":
-        result = [
-            group['name']
-            for group in response.json()['data']
-        ]
+    # Create a dict representing the created group with the required information
+    data = response.json()['data']
+    result = {'ID': data['id']}
 
     return result
 
+# This function reads all the groups at cachet and returns a list with the needed information.
+def readGroups():
+    # Input:
+    #   None.
+    # Output:
+    #   succeeded: Will return a list of dicts where each dict represents a group and contains the
+    #              rquired information about it.
+    #              The required information is specified in the docs at groups under adapters.
+    #   failed: Will raise a requests.HTTPError exception.
+
+    # Make an authenticated get request to the appropriate end point to read all groups
+    response = requests.get("{API}/components/groups".format(API=API),
+                            params={"per_page": objectsPerPage},
+                            headers={
+                                'X-Cachet-Token': APIKey,
+                                'Content-Type': "application/json"
+                            })
+    # Raise HTTPError for all unsuccessful status codes.
+    response.raise_for_status()
+
+    # Create the list containing the dicts representing the retrieved groups with the requiered information
+    data = response.json()['data']
+    result = [
+        {
+            'name': group['name'],
+            'ID': group['id']
+        }
+        for group in data
+    ]
+
+    return result
+
+# This function deletes a group from cachet given its ID number.
 def deleteGroup(groupID):
-    try:
-        response = requests.delete("{API}/components/groups/{id}".format(API=API, id=groupID),
-                                   headers={'X-Cachet-Token': APIKey})
-        response.raise_for_status()
-    except requests.HTTPError as e:
-        log("Error", "Coulden't delete an object from the endpoint 'components/groups/' !!!")
-        log("Error", "Unsuccessful HTTP DELETE Request! Error Code {}".format(str(e)))
-        log("Error", str(response.text))
-    else:
-        log("Success", "Deleted the group with the id {id}".format(id=groupID))
+    # Input:
+    #   groupID: An int specifying the ID of the group to be deleted.
+    # Output:
+    #   succeeded: Will return None.
+    #   failed: Will raise a requests.HTTPError exception.
+
+    # Make an authenticated delete request to the appropriate end point to delete the group
+    response = requests.delete("{API}/components/groups/{ID}".format(API=API, ID=groupID),
+                               headers={'X-Cachet-Token': APIKey})
+    # Raise HTTPError for all unsuccessful status codes.
+    response.raise_for_status()
 

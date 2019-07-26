@@ -1,0 +1,3 @@
+def setupLogging():
+    pass
+

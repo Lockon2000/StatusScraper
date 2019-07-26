@@ -1,7 +1,9 @@
-from lib.internals.utilities.verfication import verifyConfigurations
-from lib.internals.utilities.verfication import verifyAdapters
-from lib.internals.utilities.verfication import verifyProviders
-from lib.internals.utilities.assurance import ensureLogging
+from lib.internals.utilities.verification import verifyConfigurations
+from lib.internals.utilities.verification import verifyAdapters
+from lib.internals.utilities.verification import verifyProviders
+from lib.internals.utilities.logging import setupLogging
+from lib.utilities.wrappers import componentsGetterWrapper
+from lib.utilities.wrappers import incidentsGetterWrapper
 from conf.config import enabledProviders
 
 
@@ -14,25 +16,24 @@ def init():
     verifyAdapters()
     verifyProviders()
 
-
     # Insurances:
-    ensureLogging()
+    setupLogging()
 
     # Needed variables for the CRUD function:
     providers = {
         "modules":[
-            importlib.import_module("lib.providers."+provider)
-            for provider in enabledProviders
+            importlib.import_module("lib.providers."+provider.lower())      # lower cased providers to provide for
+            for provider in enabledProviders                                # case insensitve configuration
         ]
     }
 
     providers.update({
         "componentFunctions": [
-            module.getComponents
+            componentsGetterWrapper(module.providerName)(module.getComponents)
             for module in providers["modules"]
         ],
         "incidentFunctions": [
-            module.getIncidents
+            incidentsGetterWrapper(module.providerName)(module.getIncidents)
             for module in providers["modules"]
         ]
     })

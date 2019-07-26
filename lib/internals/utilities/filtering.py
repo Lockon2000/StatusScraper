@@ -3,59 +3,38 @@ from re import IGNORECASE
 
 from configs import componentsBlacklist
 from configs import incidentsBlacklist
-from configs import maintenancesBlacklist
 
 
 # Global options
 debug = False
 
 
-def isRelevantComponent(providerName, component):
-    regex = "|".join(componentsBlacklist[providerName])
+def isRelevantComponent(component):
+    regex = "|".join(componentsBlacklist[component['provider']])
     string = component['name']
 
     if regex:
         if search(regex, string, IGNORECASE):
-            decision = False
-        else:
-            decision = True
-    else:
-        decision = True
+            return False
 
-    return decision
+    return True
 
-def isRelevantIncident(providerName, incident):
-    decision = True
-
-    regex = "|".join(incidentsBlacklist[providerName])
+def isRelevantIncident(incident):
+    regex = "|".join(incidentsBlacklist[incident['provider']])
     string = incident['name']
 
     if regex:
         if search(regex, string, IGNORECASE):
-            decision = False
+            return False
 
-    regex = "|".join(componentsBlacklist[providerName])
-    string = incident['verbalComponents']
-
-    if regex:
-        if search(regex, string, IGNORECASE):
-            decision = False
-
-    return decision
-
-def isRelevantMaintenance(providerName, maintenance):
-    regex = "|".join(maintenancesBlacklist[providerName])
-    string = maintenance['name']
+    regex = "|".join(componentsBlacklist[incident['provider']])
+    string = " ".join(incident['verbalComponents'])
 
     if regex:
-        if search(regex, string, IGNORECASE):
-            decision = False
-        else:
-            decision = True
-    else:
-        decision = True
+        if len(findall(regex, string, IGNORECASE)) == len(incident['verbalComponents']):
+            return False
 
-    return decision
+    return True
 
 
 if __name__ == '__main__':
@@ -63,11 +42,3 @@ if __name__ == '__main__':
     from pprint import pprint
     debug = True
 
-    from enabledProviders import modules
-    providerNames = [module.providerName for module in modules]
-    print("### Relevance Functions RegExes")
-    for providerName in providerNames:
-        print("\n----------RegEx's for provider {} ----------".format(providerName))
-        print("Components RegEx", "|".join(componentsBlacklist[providerName]))
-        print("Incidents RegEx", "|".join(incidentsBlacklist[providerName]))
-        print("Maintenances RegEx", "|".join(maintenancesBlacklist[providerName]))
