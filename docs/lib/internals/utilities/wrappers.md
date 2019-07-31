@@ -23,11 +23,15 @@ The scrapeComponents wrapper function, roughly, does the following:
     - Type: `int` or `NoneType`
     - Description: This key should hold the component ID if it is no new component. Otherwise it should hold `None`.
 - `'groupName'`:
-    - Type: `string`
-    - Description: Holds the name of the group this component belongs to.
+    - Type: `string` or `NoneType`
+    - Description: Holds the name of the group this component belongs to. Normally the group to which this component belongs will already have been 
+                   created by the point this information is required, but in certain cases, e.g. "Testing", it can happen that the component still
+                   doesn't have a group. 
 - `'groupID'`:
-    - Type: `int`
-    - Description: This key should hold the group ID of the group to which this component belongs.
+    - Type: `int` or `NoneType`
+    - Description: This key should hold the group ID of the group to which this component belongs. Normally the group to which this component
+                   belongs will already have been created by the point this information is required, but in certain cases, e.g. "Testing", it can
+                   happen that the component still doesn't have a group.
 - `'verbalStatus'`:
     - Type: `string`
     - Description: Holds the German verbal status of a component.

@@ -3,7 +3,7 @@ from lib.internals.tasks.crud import CRUD
 from lib.internals.tasks.finish import finish
 
 def main():
-    # Make sure the ground work ist set
+    # Make sure the ground work is set
     providers = init()
 
     # Actual porpuse of program
@@ -16,3 +16,4 @@ def main():
 if __name__ == "__main__":
     # Run Application
     main()
+

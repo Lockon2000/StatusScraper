@@ -165,42 +165,6 @@ def readFormatedIncidents(form="hash: ID"):
 
     return result
 
-
-# WIP --------------------------
-
-# This function first makes a call to the status site to retriev all incidents then formats them
-# according to the requested format and returns them.
-def readFormatedIncidentUpdates(form="hash: ID"):
-    # Input:
-    #   form: A string with the needed format. Note: 'hash' here means the unique hash of the incident identifying it.
-    # Output:
-    #   succeeded: Will return a dict with the incidents in the requested format.
-    #   failed: Will raise a requests.HTTPError exception or raise a ValueError exception.
-
-    # Read the incidents from the status site with the guaranteed pieces of information
-    interimResult = readIncidents()
-
-    # Decide according to the supplied format which format to build
-    if form == "hash: ID":
-        result = {
-            hashIncident(incident): incident['id']
-            for incident in response.json()['data']
-        }
-    elif form == "ID: status":
-        result = {
-            incident['id']: incident['status']
-            for incident in response.json()['data']
-        }
-    else:
-        raise ValueError("'{form}' is not a valid format".format(form=form))
-
-    return result
-
-
-
-
-# WIP --------------------------
-
 # This funtions counts the number of updates an incident has and returns it
 def readNumberOfIncidentUpdates(incidentID):
     # Input:
@@ -208,16 +172,10 @@ def readNumberOfIncidentUpdates(incidentID):
     # Output:
     #   succeeded: Will return an int representing the number of updates of incident.
     #   failed: Will raise a requests.HTTPError exception.
-    try:
-        response = requests.get("{API}/incidents/{incidentID}/updates".format(
-                                                                API=API,
-                                                                incidentID=incidentID
-                                                            )
-        )
-        response.raise_for_status()
-    except requests.HTTPError as e:
-        log("Error", "Couldn't get the updates of the incident with the ID {}".format(incidentID))
-        log("Error", "Unsuccessful HTTP GET Request! Error Code {}".format(str(e)))
-        log("Error", str(response.text))
-    
-    return len(response.json()['data'])
+
+    # Read the incident updates from the status site with the guaranteed pieces of information
+    updates = readIncidentUpdates()
+
+    # Return their number
+    return len(updates)
+

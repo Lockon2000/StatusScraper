@@ -186,11 +186,11 @@ def syncAutomatedIncidents(scrapedIncidents):
             result = createIncident(incident)
             ID = result['ID']
             # Then determine the number of all already posted updates and apply them all
-            numberOfUpdates = len(incident['updates']) - readIncidentUpdatesNumber(ID)
+            numberOfUpdates = readIncidentUpdatesNumber(ID)
             for nthLastUpdate in range(numberOfUpdates,0,-1):
                 updateIncident(ID, incident, nthLastUpdate)
 
-            # After creating the incident and updating it, it is now synced, so mark it accordingly
+            # After creating the incident and all its updates, it is now synced, so mark it accordingly
             currentAutomatedIncidentsSyncronisation[hashValue] = True
 
     # Now we delete every asynchronous automated incident

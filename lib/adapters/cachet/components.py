@@ -23,13 +23,13 @@ def createComponent(component):
     #   failed: Will raise a requests.HTTPError exception.
 
     payload = {
-        'name' = component['name']
-        'description' = component['description']
+        'name': component['name'],
+        'description': component['description'],
         # component['status'] is an enum, so it must be converted to the appropriate status code specific to cachet.
-        'status' = convertComponentStatusEnumValue(component['status'])
-        'group_id' = component['groupID']
+        'status': convertComponentStatusEnumValue(component['status']),
+        'group_id': component['groupID'],
         # Wether the component is enabled or disabled.
-        'enabled' = 1
+        'enabled': 1
     }
 
     # Make an authenticated post request to the appropriate end point to create the component
@@ -92,7 +92,7 @@ def updateComponent(componentID, componentStatus):
     #   failed: Will raise a requests.HTTPError exception.
 
     payload = {
-        'status' = convertComponentStatusEnumValue(componentStatus)
+        'status': convertComponentStatusEnumValue(componentStatus)
     }
 
 

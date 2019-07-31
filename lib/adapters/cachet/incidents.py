@@ -22,11 +22,11 @@ def createIncident(incident):
     #   failed: Will raise a requests.HTTPError exception.    
 
     payload = {
-        'name': incident['name']
-        'message': incident['body']
-        'status': convertIncidentStatusEnumValue(incident['status'])
+        'name': incident['name'],
+        'message': incident['body'],
+        'status': convertIncidentStatusEnumValue(incident['status']),
         # Whether the incident is publicly visible
-        'visible': 1
+        'visible': 1,
         # Notify all subscribed users
         'notify': 1
     }
@@ -57,7 +57,7 @@ def createIncidentUpdate(incidentID, update):
     #   succeeded: Will return None.
     #   failed: Will raise a requests.HTTPError exception.
     payload = {
-        'status': convertIncidentStatusEnumValue(update['IncidentStatus'])
+        'status': convertIncidentStatusEnumValue(update['IncidentStatus']),
         'message': update['formatedBody']
     }
 
@@ -134,8 +134,6 @@ def readIncidents():
 
     return result
 
-# WIP ---------------------------------------- return value!!!!!
-
 # This function reads all the updates for a specific incident at cachet and returns a list with the needed information.
 def readIncidentUpdates(incidentID):
     # Input:
@@ -155,6 +153,17 @@ def readIncidentUpdates(incidentID):
                             })
     # Raise HTTPError for all unsuccessful status codes.
     response.raise_for_status()
+
+    # Create the list containing the dicts representing the retrieved incident updates with the requiered information
+    data = response.json()['data']
+    result = [
+        {
+            'ID': incidentUpdate['id'],
+        }
+        for incidentUpdate in data
+    ]
+
+    return result
 
 # This function updates an existing incident with a new body given its ID.
 def updateIncident(incidentID, incidentBody):
@@ -181,7 +190,7 @@ def updateIncident(incidentID, incidentBody):
 
 # This function updates an existing incident update with a new body and incident status given its and 
 # the incident ID.
-def updateIncidentUpdate(incidentUpdate, incidentID)
+def updateIncidentUpdate(incidentUpdate, incidentID):
     # Input:
     #   incidentUpdate: A dict representing the incident update containing all necessary information.
     #                   For a refrence about the contained information see the docs for incidents under crud.
