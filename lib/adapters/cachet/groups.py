@@ -46,6 +46,33 @@ def createGroup(groupName):
 
     return result
 
+# This function reads a specific group at cachet given its ID and returns a dict with the needed information.
+def readGroup(groupID):
+    # Input:
+    #   groupID: The ID of the group requested.
+    # Output:
+    #   succeeded: Will return a dict representing the requested group with the required information.
+    #              The required information is specified in the docs at groups under adapters.
+    #   failed: Will raise a requests.HTTPError exception.
+
+    # Make an authenticated get request to the appropriate end point to read the group
+    response = requests.get("{API}/components/groups/{groupID}".format(API=API, groupID=groupID),
+                            headers={
+                                'X-Cachet-Token': APIKey,
+                                'Content-Type': "application/json"
+                            })
+    # Raise HTTPError for all unsuccessful status codes.
+    response.raise_for_status()
+
+    # Create the dict containing all required information about the group
+    data = response.json()['data']
+    result = {
+            'name': data['name'],
+            'ID': data['id']
+    }
+
+    return result
+
 # This function reads all the groups at cachet and returns a list with the needed information.
 def readGroups():
     # Input:

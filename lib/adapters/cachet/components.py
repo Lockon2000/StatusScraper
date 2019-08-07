@@ -5,7 +5,6 @@ import requests
 from conf.configs import API
 from conf.configs import APIKey
 from lib.internals.structures.enums import ComponentStatus
-from .groups import readGroups
 
 
 # Global options
@@ -45,6 +44,35 @@ def createComponent(component):
     # Create a dict representing the created component with the required information
     data = response.json()['data']
     result = {'ID': data['id']}
+
+    return result
+
+# This function reads a specific component at cachet given its ID and returns a dict with the needed information.
+def readComponent(componentID):
+    # Input:
+    #   componentID: The ID of the component requested.
+    # Output:
+    #   succeeded: Will return a dict representing the requested component with the required information.
+    #              The required information is specified in the docs at components under adapters.
+    #   failed: Will raise a requests.HTTPError exception.
+
+    # Make an authenticated get request to the appropriate end point to read the component
+    response = requests.get("{API}/components/{componentID}".format(API=API, componentID=componentID),
+                            headers={
+                                'X-Cachet-Token': APIKey,
+                                'Content-Type': "application/json"
+                            })
+    # Raise HTTPError for all unsuccessful status codes.
+    response.raise_for_status()
+
+    # Create the dict containing all required information about the component
+    data = response.json()['data']
+    result = {
+            'name': data['name'],
+            'ID': data['id'],
+            'status': data['status'],
+            'groupID': data['group_id']
+    }
 
     return result
 

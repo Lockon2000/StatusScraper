@@ -15,3 +15,11 @@ class IncidentStatus(IntEnum):
     Watching = 3
     Fixed = 4
 
+@unique
+class IncidentUpdateType(IntEnum):
+    Investigating = 1
+    Identified = 2
+    Watching = 3
+    Fixed = 4
+    Update = 5
+

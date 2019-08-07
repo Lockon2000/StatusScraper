@@ -4,6 +4,7 @@ import requests
 
 from conf.configs import API
 from conf.configs import APIKey
+from lib.internals.structures.enums import IncidentStatus
 
 
 # Global options
@@ -54,10 +55,11 @@ def createIncidentUpdate(incidentID, update):
     #   update: A dict representing the update supplying all necessery information. For a refrence of the
     #           supplied information see incidents under crud.
     # Output:
-    #   succeeded: Will return None.
+    #   succeeded: Will return a dict with the response data required about the created incident update. The 
+    #              required information is specified in the docs at incidents under adapters.
     #   failed: Will raise a requests.HTTPError exception.
     payload = {
-        'status': convertIncidentStatusEnumValue(update['IncidentStatus']),
+        'status': convertIncidentStatusEnumValue(update['incidentStatus']),
         'message': update['formatedBody']
     }
 
@@ -70,6 +72,12 @@ def createIncidentUpdate(incidentID, update):
                             })
     # Raise HTTPError for all unsuccessful status codes.
     response.raise_for_status()
+
+    # Create a dict representing the created component with the required information
+    data = response.json()['data']
+    result = {'ID': data['id']}
+
+    return result
 
 # This function reads a specific incidents at cachet given its ID and returns a dict with the needed information.
 def readIncident(incidentID):
@@ -92,10 +100,10 @@ def readIncident(incidentID):
     # Create the dict containing all required information about the incident
     data = response.json()['data']
     result = {
-            'name': incident['name'],
-            'ID': incident['id'],
-            'status': incident['status'],
-            'body': incident['message']
+            'name': data['name'],
+            'ID': data['id'],
+            'status': data['status'],
+            'body': data['message']
     }
 
     return result
@@ -245,7 +253,7 @@ def deleteIncidentUpdate(incidentUpdateID, incidentID):
     response = requests.delete("{API}/incidents/{incidentID}/updates/{incidentUpdateID}".format(
                                                                             API=API,
                                                                             incidentID=incidentID, 
-                                                                            incidentUpdateID=incidentUpdate['ID']
+                                                                            incidentUpdateID=incidentUpdateID
                                                                         ),
                                headers={'X-Cachet-Token': APIKey})
     # Raise HTTPError for all unsuccessful status codes.

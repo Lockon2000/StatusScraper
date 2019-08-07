@@ -1,6 +1,6 @@
 # Specification for the created components at a status site
 
-a successfully created component with createComponent should return a dict with the following keys:
+A successfully created component with createComponent should return a dict with the following keys:
 - `'ID'`:
     - Type: `int`
     - Description: This key should hold the newly created components ID.
@@ -11,8 +11,8 @@ a successfully created component with createComponent should return a dict with 
 
 # Specification for the retrieved components from a status site
 
-a successful retrieval of all components at the status site with readComponents should return a list containing dicts where each
-dict represents a component and contains the following keys:
+A successful retrieval of any component at the status site with `readComponent` or `readComponents` should return a `dict` or a `list` of `dicts`
+where each `dict` represents a component and contains the following keys:
 - `'name'`:
     - Type: `string`
     - Description: This key should hold a string with the name of the group.

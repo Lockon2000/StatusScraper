@@ -56,27 +56,38 @@ The scrapeIncidents wrapper function, roughly, does the following:
 - `'verbalStatus'`:
     - Type: `string`
     - Description: Holds the language speicfic verbal status of the incident.
-- `'Body'`:
+- `'body'`:
     - Type: `string`
     - Description: holds the formated main body of the incident ready for presentation. This is where the marker is embedded.
 - `'componenIDs'`:
     - Type: `list.string` or `NoneType`
-    - Description: Holds the names of the affected components. If there are no effected components then this key should hold `None`.
-                   We chose to include the names of the components and not the IDs because the components could still be new and have no ID.
-                   It could be possible that not all components at the providers status site are needed or desired. In that case only relevent
-                   components should be included in this list, if any.
+    - Description: Holds the IDs of the affected components. If there are no affected components (either because there aren't any at the provider
+                   or because the components don't have any like in testing scenarios. Notice that normally the commponents should already have
+                   been created and be present at the point of executing this wrapper) then this key should hold `None`.
 - `'componentVerbalStatuses'`:
     - Type: `list.enum:ComponentStatus` or `NoneType`
-    - Description: Holds the statuses of the the correspondet components. The statuses order should match the components order. If there are no
-                   components or at least no relevant ones then this should contain `None`.
+    - Description: Holds the language specific verbal statuses of the the correspondet components. The statuses order should match the components
+                   order. If there are no components or at least no relevant ones then this should contain `None`.
+- `'creationDate'`:
+    - Type: `datetime.datetime`
+    - Description: Holds the date this incidents was created at.
+- `'lastUpdateDate'`:
+    - Type: `datetime.datetime`
+    - Description: Holds the date when this incident was last updated.
 
 ## Data to be Completed for The Incidents Updates
 - `'ID'`:
     - Type: `int` or `NoneType`
     - Description: This key should hold the incident update ID if it is no new incident update. Otherwise it should hold `None`.
-- `'IncidentStatus'`:
+- `'incidentID'`:
+    - Type: `int` or `NoneType`
+    - Description: This key should hold the incident ID of the incident to which this incident update belongs. Normally the incident to which this
+                   update belongs will already have been created by the point this information is required, but in certain cases,
+                   e.g. "Testing", it can happen that the incident update still doesn't have an incident.
+- `'incidentStatus'`:
     - Type: `enum:IncidentStatus`
-    - Description: This key should hold the incident status as an IncidentStatus enum. See the docs for enums under structures for more information.
+    - Description: This key should hold the incident status according to this update as an IncidentStatus enum. See the docs for enums under
+                   structures for more information.
 - `'formatedBody'`:
     - Type: `'string'`
     - Description: Holds the formated body ready for presentation.

@@ -1,6 +1,6 @@
 # Specification for the created groups at a status site
 
-a successfully created group with createGroup should return a dict with the following keys:
+A successfully created group with `createGroup` should return a `dict` with the following keys:
 - `'ID'`:
     - Type: `int`
     - Description: This key should hold the newly created groups ID.
@@ -11,8 +11,8 @@ a successfully created group with createGroup should return a dict with the foll
 
 # Specification for the retrieved groups from a status site
 
-a successful retrieval of all groups at the status site with readGroups should return a list containing dicts where each
-dict represents a group and contains the following keys:
+A successful retrieval of any group at the status site with `readGroup` or `readGroups` should return a `dict` or a `list` of `dicts` where each
+`dict` represents a group and contains the following keys:
 - `'name'`:
     - Type: `string`
     - Description: This key should hold a string with the name of the group.

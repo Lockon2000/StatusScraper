@@ -1,6 +1,6 @@
 # Specification for the created incidents at a status site
 
-a successfully created incident with `createIncident` should return a dict with the following keys:
+A successfully created incident with `createIncident` should return a `dict` with the following keys:
 - `'ID'`:
     - Type: `int`
     - Description: This key should hold the newly created incidents ID.
@@ -11,8 +11,8 @@ a successfully created incident with `createIncident` should return a dict with 
 
 # Specification for the retrieved incidents from a status site
 
-a successful retrieval of an incident from the status site with `readIncident` should return a dict which represents the incident and contains the
-following keys (In the case of retrieving all incidents with `readIncidents` it should return a list the dicts representing the incidents):
+A successful retrieval of an incident from the status site with `readIncident` should return a `dict` which represents the incident and contains the
+following keys (In the case of retrieving all incidents with `readIncidents` it should return a `list` the `dicts` representing the incidents):
 - `'name'`:
     - Type: `string`
     - Description: This key should hold a string with the name of the group.
@@ -38,11 +38,20 @@ following keys (In the case of retrieving all incidents with `readIncidents` it 
         - Cachet:
             - The cachet API calls this piece of information `'message'`.
 
+# Specification for the created incident updates at a status site
+
+A successfully created incident update with `createIncidentUpdate` should return a `dict` with the following keys:
+- `'ID'`:
+    - Type: `int`
+    - Description: This key should hold the newly created incident updates ID.
+    - Remarks Specific to an employed Status Site:
+        - Cachet:
+            - The cachet API calls this piece of information `'id'`.
 
 # Specification for the retrieved incident updates from a status site
 
-a successful retrieval of all incident updates at the status site with `readIncidentUpdates` should return a list containing dicts where each
-dict represents an incident update and contains the following keys:
+A successful retrieval of all incident updates at the status site with `readIncidentUpdates` should return a `list` containing `dicts` where each
+`dict` represents an incident update and contains the following keys:
 - `'ID'`:
     - Type: `int`
     - Description: This key should hold the ID of the incident udpate.
