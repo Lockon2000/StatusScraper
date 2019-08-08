@@ -28,6 +28,8 @@ def createIncident(incident):
         'status': convertIncidentStatusEnumValue(incident['status']),
         # Whether the incident is publicly visible
         'visible': 1,
+        # Whether the incident should be sticked
+        'stickied': 1,
         # Notify all subscribed users
         'notify': 1
     }
@@ -49,18 +51,18 @@ def createIncident(incident):
     return result
 
 # This function updates an existing incident with a new update reporting new events
-def createIncidentUpdate(incidentID, update):
+def createIncidentUpdate(incidentID, incidentUpdate):
     # Input:
     #   incidentID: The ID of the incident we wish to update.
-    #   update: A dict representing the update supplying all necessery information. For a refrence of the
+    #   incidentUpdate: A dict representing the update supplying all necessery information. For a refrence of the
     #           supplied information see incidents under crud.
     # Output:
     #   succeeded: Will return a dict with the response data required about the created incident update. The 
     #              required information is specified in the docs at incidents under adapters.
     #   failed: Will raise a requests.HTTPError exception.
     payload = {
-        'status': convertIncidentStatusEnumValue(update['incidentStatus']),
-        'message': update['formatedBody']
+        'status': convertIncidentStatusEnumValue(incidentUpdate['incidentStatus']),
+        'message': incidentUpdate['formatedBody']
     }
 
     # Make an authenticated post request to the appropriate end point to update the incident
@@ -102,7 +104,7 @@ def readIncident(incidentID):
     result = {
             'name': data['name'],
             'ID': data['id'],
-            'status': data['status'],
+            'status': convertIncidentStatusPlainValue(data['status']),
             'body': data['message']
     }
 
@@ -134,7 +136,7 @@ def readIncidents():
         {
             'name': incident['name'],
             'ID': incident['id'],
-            'status': incident['status'],
+            'status': convertIncidentStatusPlainValue(incident['status']),
             'body': incident['message']
         }
         for incident in data
@@ -142,7 +144,41 @@ def readIncidents():
 
     return result
 
-# This function reads all the updates for a specific incident at cachet and returns a list with the needed information.
+# This function reads a specific update for a specific incident at cachet and returns the needed information.
+def readIncidentUpdate(incidentID, incidentUpdateID):
+    # Input:
+    #   incidentID: The ID of the incident whose update is requested.
+    #   incidentUpdateID: The ID of the requested incident update.
+    # Output:
+    #   succeeded: Will return a dict which represents an incident update and contains the rquired information about
+    #              it. The required information is specified in the docs at incidents under adapters.
+    #   failed: Will raise a requests.HTTPError exception.
+
+    # Make an authenticated get request to the appropriate end point to read the incident update
+    response = requests.get("{API}/incidents/{incidentID}/updates/{incidentUpdateID}".format(
+                                                                                    API=API,
+                                                                                    incidentID=incidentID,
+                                                                                    incidentUpdateID=incidentUpdateID
+                                                                                ),
+                            params={"per_page": objectsPerPage},
+                            headers={
+                                'X-Cachet-Token': APIKey,
+                                'Content-Type': "application/json"
+                            })
+    # Raise HTTPError for all unsuccessful status codes.
+    response.raise_for_status()
+
+    # Create the list containing the dicts representing the retrieved incident updates with the requiered information
+    data = response.json()['data']
+    result = {
+            'ID': data['id'],
+            'incidentStatus': convertIncidentStatusPlainValue(data['status']),
+            'formatedBody': data['message']
+    }
+
+    return result
+
+# This function reads all the updates for a specific incident at cachet and returns the needed information.
 def readIncidentUpdates(incidentID):
     # Input:
     #   incidentID: The ID of the incident whose updates are requested.
@@ -167,6 +203,8 @@ def readIncidentUpdates(incidentID):
     result = [
         {
             'ID': incidentUpdate['id'],
+            'incidentStatus': convertIncidentStatusPlainValue(incidentUpdate['status']),
+            'formatedBody': incidentUpdate['message']
         }
         for incidentUpdate in data
     ]
@@ -198,7 +236,7 @@ def updateIncident(incidentID, incidentBody):
 
 # This function updates an existing incident update with a new body and incident status given its and 
 # the incident ID.
-def updateIncidentUpdate(incidentUpdate, incidentID):
+def updateIncidentUpdate(incidentID, incidentUpdate):
     # Input:
     #   incidentUpdate: A dict representing the incident update containing all necessary information.
     #                   For a refrence about the contained information see the docs for incidents under crud.
@@ -208,7 +246,7 @@ def updateIncidentUpdate(incidentUpdate, incidentID):
     #   failed: Will raise a requests.HTTPError exception.
 
     payload = {
-        'status': convertIncidentStatusEnumValue(incidentUpdate['IncidentStatus']),
+        'status': convertIncidentStatusEnumValue(incidentUpdate['incidentStatus']),
         'message': incidentUpdate['formatedBody']
     }
 
@@ -276,4 +314,21 @@ def convertIncidentStatusEnumValue(incidentStatusEnumValue):
         return 3
     elif incidentStatusEnumValue == IncidentStatus.Fixed:
         return 4
+
+# The inverse of `convertIncidentStatusEnumValue`
+def convertIncidentStatusPlainValue(incidentStatusPlainValue):
+    # Input:
+    #   incidentStatusPlainValue: A cachet incident status code.
+    # Output:
+    #   succeeded: The corresponding cachet status code for the IncidentStatus enum value.
+    #   failed: Will return `None`
+
+    if   incidentStatusPlainValue == 1:
+        return IncidentStatus.Investigating
+    elif incidentStatusPlainValue == 2:
+        return IncidentStatus.Identified
+    elif incidentStatusPlainValue == 3:
+        return IncidentStatus.Watching
+    elif incidentStatusPlainValue == 4:
+        return IncidentStatus.Fixed
 

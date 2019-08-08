@@ -167,7 +167,7 @@ class UpdateComponentTestsIO:
     }
 
     outputs = {
-
+        "status": inputs["status"]
     }
 
 class DeleteComponentTestsIO:
@@ -359,6 +359,45 @@ class ReadIncidentsTestsIO:
         "returnedDictKeys": ReadIncidentTestsIO.outputs["returnedDictKeys"]
     }
 
+class ReadIncidentUpdateTestsIO:
+    fixture = {
+        "incident": {
+            "name": "test_read",
+            "ID": None,
+            "status": IncidentStatus.Investigating,
+            "verbalStatus": "Investigating",
+            "body": "test test",
+            "componentNames": None,
+            "componenIDs": None,
+            "componentStatuses": None,
+            "componentVerbalStatuses": None,
+            "updates": None, # Normally not allowable when passed to the function but is okay for testing purposes.
+            "creationDate": None, # The same comment as for the "updates" key.
+            "lastUpdateDate": None, # The same comment as for the "updates" key.
+            "link": None, # The same comment as for the "updates" key.
+            "provider": None, # The same comment as for the "updates" key.
+            "language": None # The same comment as for the "updates" key.
+        },
+        "update":{
+            "type": IncidentUpdateType.Investigating,
+            "ID": None,
+            "date": None, # Normally not allowable when passed to the function but is okay for testing purposes.
+            "incidentID": None, # The same comment as for the "date" key.
+            "incidentStatus": IncidentStatus.Investigating,
+            "rawBody": None, # The same comment as for the "date" key.
+            "formatedBody": "Test1 test1 test1"
+        }
+    }
+
+    inputs = {
+
+    }
+
+    outputs = {
+        "returnedType": dict,
+        "returnedDictKeys": ["ID", "incidentStatus", "formatedBody"]
+    }
+
 class ReadIncidentUpdatesTestsIO:
     fixture = {
         "incident": {
@@ -415,34 +454,83 @@ class ReadIncidentUpdatesTestsIO:
 
     outputs = {
         "returnedType": list,
-        "returnedChildType": dict,
-        "returnedDictKeys": ["ID"]
+        "returnedChildType": ReadIncidentUpdateTestsIO.outputs["returnedType"],
+        "returnedDictKeys": ReadIncidentUpdateTestsIO.outputs["returnedDictKeys"]
     }
 
 class UpdateIncidentTestsIO:
     fixture = {
-
+        "incident": {
+            "name": "test_update",
+            "ID": None,
+            "status": IncidentStatus.Investigating,
+            "verbalStatus": "Investigating",
+            "body": "test test",
+            "componentNames": None,
+            "componenIDs": None,
+            "componentStatuses": None,
+            "componentVerbalStatuses": None,
+            "updates": None, # Normally not allowable when passed to the function but is okay for testing purposes.
+            "creationDate": None, # The same comment as for the "updates" key.
+            "lastUpdateDate": None, # The same comment as for the "updates" key.
+            "link": None, # The same comment as for the "updates" key.
+            "provider": None, # The same comment as for the "updates" key.
+            "language": None # The same comment as for the "updates" key.
+        }
     }
 
     inputs = {
-
+        "incidentBody": "updated updated"
     }
 
     outputs = {
-
+        "incidentBody": inputs["incidentBody"]
     }
 
 class UpdateIncidentUpdateTestsIO:
     fixture = {
-
+        "incident": {
+            "name": "test_update_update",
+            "ID": None,
+            "status": IncidentStatus.Investigating,
+            "verbalStatus": "Investigating",
+            "body": "test test",
+            "componentNames": None,
+            "componenIDs": None,
+            "componentStatuses": None,
+            "componentVerbalStatuses": None,
+            "updates": None, # Normally not allowable when passed to the function but is okay for testing purposes.
+            "creationDate": None, # The same comment as for the "updates" key.
+            "lastUpdateDate": None, # The same comment as for the "updates" key.
+            "link": None, # The same comment as for the "updates" key.
+            "provider": None, # The same comment as for the "updates" key.
+            "language": None # The same comment as for the "updates" key.
+        },
+        "update": {
+            "type": IncidentUpdateType.Investigating,
+            "ID": None,
+            "date": None, # Normally not allowable when passed to the function but is okay for testing purposes.
+            "incidentID": None, # The same comment as for the "date" key.
+            "incidentStatus": IncidentStatus.Investigating,
+            "rawBody": None, # The same comment as for the "date" key.
+            "formatedBody": "Test test test"
+        }
     }
 
     inputs = {
-
+        "update": {
+            "type": IncidentUpdateType.Investigating,
+            "ID": None,
+            "date": None, # Normally not allowable when passed to the function but is okay for testing purposes.
+            "incidentID": None, # The same comment as for the "date" key.
+            "incidentStatus": IncidentStatus.Investigating,
+            "rawBody": None, # The same comment as for the "date" key.
+            "formatedBody": "Update Update Update"
+        }
     }
 
     outputs = {
-
+        "formatedBody": inputs['update']['formatedBody']
     }
 
 class DeleteIncidentTestsIO:

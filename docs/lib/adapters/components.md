@@ -27,7 +27,8 @@ where each `dict` represents a component and contains the following keys:
             - The cachet API calls this piece of information `'id'` in the context of a group and `'group_id'` in other contexts.
 - `'status'`:
     - Type: `enum:ComponentStatus`
-    - Description: This key should hold the component status as a ComponentStatus enum. See the docs for enums under structures for more information.
+    - Description: This key should hold the component status as a ComponentStatus enum. See the docs for enums under
+                   structures for more information.
     - Remarks Specific to an employed Status Site:
         - Cachet:
             - The cachet API calls this piece of information `'status'` in the context of a component and `'component_status'` in all other contexts.

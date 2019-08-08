@@ -1,3 +1,9 @@
+# Still needed work
+# 1. complete the last three tests
+# 2. make the tests also check for the dict key types not only their existences
+
+
+
 from sys import argv
 from importlib import import_module
 import unittest
@@ -226,7 +232,7 @@ class UpdateComponentTests(unittest.TestCase):
 
         # Check wether the operation altred the state of the status site
         self.assertEqual(readComponent(self.createdComponentID)["status"],
-                         UpdateComponentTestsIO.inputs["status"],
+                         UpdateComponentTestsIO.outputs["status"],
                          "The component was not updated at the status site after attempting to update it")
 
     # Teardown after EVERY test method
@@ -357,6 +363,36 @@ class ReadIncidentsTests(unittest.TestCase):
         for ID in self.createdIncidentsIDs:
             deleteIncident(ID)
 
+# class ReadIncidentUpdateTests(unittest.TestCase):
+#     # Setup for EVERY test method
+#     def setUp(self):
+#         # Create an incident and save its ID then populate it with updates to be read in the tests.
+#         self.createdIncidentID = createIncident(ReadIncidentUpdatesTestsIO.fixture["incident"])["ID"]
+#         self.createdIncidentUpdatesIDs = []
+#         for update in ReadIncidentUpdatesTestsIO.fixture["updates"]:
+#             self.createdIncidentUpdatesIDs.append(createIncidentUpdate(self.createdIncidentID, update)["ID"])
+
+#     def testReadIncidentUpdate(self):
+#         # Attempt to read all incident updates
+#         result = readIncidentUpdates(self.createdIncidentID)
+#         # Check the return type of the operation
+#         self.assertEqual(type(result),
+#                             ReadIncidentUpdatesTestsIO.outputs["returnedType"],
+#                             "The return value doesn't have the correct type, as required by the specification")
+#         # Check the type of the child objects as the return type is a container
+#         self.assertEqual(type(next(iter(result))),
+#                             ReadIncidentUpdatesTestsIO.outputs["returnedChildType"],
+#                             "The return value child doesn't have the correct type, as required by the specification")
+#         # Check whether the required information by the specification is returned
+#         for component in result:
+#             self.assertTrue(all(key in component for key in ReadIncidentUpdatesTestsIO.outputs["returnedDictKeys"]),
+#                             "The information required by the specification was not returned")
+
+#     # Teardown after EVERY test method
+#     def tearDown(self):
+#         # Delete the created incident during the test, which automatically also deletes all its updates
+#         deleteIncident(self.createdIncidentID)
+
 class ReadIncidentUpdatesTests(unittest.TestCase):
     # Setup for EVERY test method
     def setUp(self):
@@ -366,7 +402,7 @@ class ReadIncidentUpdatesTests(unittest.TestCase):
         for update in ReadIncidentUpdatesTestsIO.fixture["updates"]:
             self.createdIncidentUpdatesIDs.append(createIncidentUpdate(self.createdIncidentID, update)["ID"])
 
-    def testReadIncidentUpdate(self):
+    def testReadIncidentUpdates(self):
         # Attempt to read all incident updates
         result = readIncidentUpdates(self.createdIncidentID)
         # Check the return type of the operation
@@ -387,45 +423,80 @@ class ReadIncidentUpdatesTests(unittest.TestCase):
         # Delete the created incident during the test, which automatically also deletes all its updates
         deleteIncident(self.createdIncidentID)
 
-# class UpdateIncidentTests(unittest.TestCase):
-#     # Setup for EVERY test method
-#     def setUp(self):
-#         # Create a component to test if it can be updated
-#         self.createdComponentID = createComponent(UpdateComponentTestsIO.fixture["component"])["ID"]
+class ReadIncidentUpdatesTests(unittest.TestCase):
+    # Setup for EVERY test method
+    def setUp(self):
+        # Create an incident and save its ID then populate it with updates to be read in the tests.
+        self.createdIncidentID = createIncident(ReadIncidentUpdatesTestsIO.fixture["incident"])["ID"]
+        self.createdIncidentUpdatesIDs = []
+        for update in ReadIncidentUpdatesTestsIO.fixture["updates"]:
+            self.createdIncidentUpdatesIDs.append(createIncidentUpdate(self.createdIncidentID, update)["ID"])
 
-#     def testUpdateIncident(self):
-#         # Attempt to update the component with a new status
-#         updateComponent(self.createdComponentID, UpdateComponentTestsIO.inputs["status"])
+    def testReadIncidentUpdates(self):
+        # Attempt to read all incident updates
+        result = readIncidentUpdates(self.createdIncidentID)
+        # Check the return type of the operation
+        self.assertEqual(type(result),
+                         ReadIncidentUpdatesTestsIO.outputs["returnedType"],
+                         "The return value doesn't have the correct type, as required by the specification")
+        # Check the type of the child objects as the return type is a container
+        self.assertEqual(type(next(iter(result))),
+                         ReadIncidentUpdatesTestsIO.outputs["returnedChildType"],
+                         "The return value child doesn't have the correct type, as required by the specification")
+        # Check whether the required information by the specification is returned
+        for component in result:
+            self.assertTrue(all(key in component for key in ReadIncidentUpdatesTestsIO.outputs["returnedDictKeys"]),
+                            "The information required by the specification was not returned")
 
-#         # Check wether the operation altred the state of the status site
-#         self.assertEqual(readComponent(self.createdComponentID)["status"],
-#                          UpdateComponentTestsIO.inputs["status"],
-#                          "The component was not updated at the status site after attempting to update it")
+    # Teardown after EVERY test method
+    def tearDown(self):
+        # Delete the created incident during the test, which automatically also deletes all its updates
+        deleteIncident(self.createdIncidentID)
 
-#     # Teardown after EVERY test method
-#     def tearDown(self):
-#         # Delete the created component during the test
-#         deleteComponent(self.createdComponentID)
+class UpdateIncidentTests(unittest.TestCase):
+    # Setup for EVERY test method
+    def setUp(self):
+        # Create an incident to test if it can be updated
+        self.createdIncidentID = createIncident(UpdateIncidentTestsIO.fixture["incident"])["ID"]
 
-# class UpdateIncidentUpdateTests(unittest.TestCase):
-#     # Setup for EVERY test method
-#     def setUp(self):
-#         # Create a component to test if it can be updated
-#         self.createdComponentID = createComponent(UpdateComponentTestsIO.fixture["component"])["ID"]
+    def testUpdateIncident(self):
+        # Attempt to update the incident with a new body
+        updateIncident(self.createdIncidentID, UpdateIncidentTestsIO.inputs["incidentBody"])
 
-#     def testUpdateIncidentUpdate(self):
-#         # Attempt to update the component with a new status
-#         updateComponent(self.createdComponentID, UpdateComponentTestsIO.inputs["status"])
+        # Check wether the operation altred the state of the status site
+        self.assertEqual(readIncident(self.createdIncidentID)["body"],
+                         UpdateIncidentTestsIO.outputs["incidentBody"],
+                         "The incident was not updated at the status site after attempting to update it")
 
-#         # Check wether the operation altred the state of the status site
-#         self.assertEqual(readComponent(self.createdComponentID)["status"],
-#                          UpdateComponentTestsIO.inputs["status"],
-#                          "The component was not updated at the status site after attempting to update it")
+    # Teardown after EVERY test method
+    def tearDown(self):
+        # Delete the created incident during the test
+        deleteIncident(self.createdIncidentID)
 
-#     # Teardown after EVERY test method
-#     def tearDown(self):
-#         # Delete the created component during the test
-#         deleteComponent(self.createdComponentID)
+class UpdateIncidentUpdateTests(unittest.TestCase):
+    # Setup for EVERY test method
+    def setUp(self):
+        # Create an incident and an incident update to test if it can be updated
+        self.createdIncidentID = createIncident(UpdateIncidentUpdateTestsIO.fixture["incident"])["ID"]
+        self.createdIncidentUpdateID = createIncidentUpdate(self.createdIncidentID, 
+                                                            UpdateIncidentUpdateTestsIO.fixture["update"])['ID']
+        # Also update `UpdateIncidentUpdateTestsIO.inputs["update"]` with the incident update ID as this
+        # is needed by the call to `updateIncidentUpdate` below
+        UpdateIncidentUpdateTestsIO.inputs["update"]['ID'] = self.createdIncidentUpdateID
+
+    def testUpdateIncidentUpdate(self):
+        # Attempt to update the incident update with a new status
+        updateIncidentUpdate(self.createdIncidentID, UpdateIncidentUpdateTestsIO.inputs["update"])
+
+        # Check wether the operation altred the state of the status site
+        self.assertEqual(readIncidentUpdate(self.createdIncidentID, self.createdIncidentUpdateID)["formatedBody"],
+                         UpdateIncidentUpdateTestsIO.outputs["formatedBody"],
+                         "The incident update was not updated at the status site after attempting to update it")
+
+    # Teardown after EVERY test method
+    def tearDown(self):
+        # Delete the created incident during the test
+        deleteIncident(self.createdIncidentID)
 
 # class DeleteIncidentTests(unittest.TestCase):
 #     # Setup for EVERY test method
@@ -477,9 +548,10 @@ if __name__ == "__main__":
     IncidentsAPITests.addTest(CreateIncidentUpdateTests("testCreateIncidentUpdate"))
     IncidentsAPITests.addTest(ReadIncidentTests("testReadIncident"))
     IncidentsAPITests.addTest(ReadIncidentsTests("testReadIncidents"))
-    IncidentsAPITests.addTest(ReadIncidentUpdatesTests("testReadIncidentUpdate"))
-    # IncidentsAPITests.addTest(UpdateIncidentTests("testUpdateIncident"))
-    # IncidentsAPITests.addTest(UpdateIncidentUpdateTests("testUpdateIncidentUpdate"))
+    # IncidentsAPITests.addTest(ReadIncidentUpdatesTests("testReadIncidentUpdate"))
+    IncidentsAPITests.addTest(ReadIncidentUpdatesTests("testReadIncidentUpdates"))
+    IncidentsAPITests.addTest(UpdateIncidentTests("testUpdateIncident"))
+    IncidentsAPITests.addTest(UpdateIncidentUpdateTests("testUpdateIncidentUpdate"))
     # IncidentsAPITests.addTest(DeleteIncidentTests("testDeleteIncident"))
     # IncidentsAPITests.addTest(DeleteIncidentUpdateTests("testDeleteIncidentUpdate"))
 
