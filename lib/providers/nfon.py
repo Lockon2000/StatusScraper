@@ -1,275 +1,176 @@
+from datetime import datetime
+from calendar import month_name
+from re import search
 from itertools import chain
 
-from lib.utilities.formatting import buildIncidentMessage
-from lib.utilities.formatting import buildIncidentUpdateMessage
-from lib.utilities.tools import getThenParse
-from lib.utilities.cachet import getCachetGroups
-from lib.utilities.cachet import getCachetComponents
+from lib.internals.utilities.providerHelpers import getThenParse
+from lib.internals.structures.enums import ComponentStatus
+from lib.internals.structures.enums import IncidentStatus
+from lib.internals.structures.enums import IncidentUpdateAction
 
 
+#  Configurations  -----------------------------------------------------------------------------------------------------
+
+# Note: The provider name here will become the group name later, so make sure the formatting is as you want it
+# to appear on the status site.
 providerName = 'NFON'
-statusURL = "https://status.nfon.com"
-parsedWebPage = getThenParse(statusURL)
+# Specifies the type of the provider, e.g. "E-Mail" or "Webpage"
+providerType = 'Webpage'
+statusPageURL = "https://status.nfon.com"
+# This variable dictates the language of the incidents and it will be used to set the programmatically generated
+# strings (e.g. incident verbal statuses) with the correct language.
+providerLanguage = "en_US"
+# These are the descriptions as they will appear on the status site.
+componentDescriptions = {
+    "Basic Telephony": "Basic telephony, incoming/outgoing calls, phone registration etc.",
+    "Secondary Telephony": "Secondary services like conferencing, eFax, voicemail",
+    "Administration": "Service portal, CDR portal, mynfon.net",
+    "User self care": "Cloudya apps, NControl, star codes, XML menus etc.",
+    "Devices":  "Phone provisioning, FMC, device incidents",
+    "PSTN-Termination": "Incoming/Outgoing telephony to/from other carriers/PSTN",
+    "Upstream/Peerings": "IP connectivity to the internet and other carriers",
+    "Third Party Integration / Value Add Services": "Skype for Business connectors, NMeeting+, voice recording etc."
+}
 
-debug = False
+# Global Variables and Steps -------------------------------------------------------------------------------------------
+
+parsedWebPage = getThenParse(statusPageURL)
 
 
-# Components Scrapper ----------------------------------------------------------------------
-def getComponents():
-    components = []
+#  Scraping  -----------------------------------------------------------------------------------------------------------
 
-    groupIDs = getCachetGroups("group: id")
-    componentIDs = getCachetComponents("groupID: {component: id}")
+# This function is responsible for scraping the components from the parsed web page and returns them in the rquired
+# format. It lies upon the implementor to make sure ONLY real components are returned and not also other objects
+# which may share its format on the provider status page. Further more no filtering should take place. This is handled
+# seperatly at another point in the program. The implementor should make sure ALL components are scraped.
+def scrapeComponents():
     rawComponents = parsedWebPage.select(".component")
-
-    componentDescription = {
-        "Basic Telephony": "Basic telephony, incoming/outgoing calls, phone registration etc.",
-        "Secondary Telephony": "Secondary services like conferencing, eFax, voicemail",
-        "Administration": "Service portal, CDR portal, mynfon.net",
-        "User self care": "NControl, star codes, XML menus etc.",
-        "Devices":  "Phone provisioning, FMC, device incidents",
-        "PSTN-Termination": "Incoming/Outgoing telephony to/from other carriers/PSTN",
-        "Upstream/Peerings": "IP connectivity to the internet and other carriers",
-        "Third Party Integration / Value Add Services": "Skype for Business connectors, NMeeting+, voice recording etc."
-    }
-
+    
+    components = []
     for rawComponent in rawComponents:
-        name = rawComponent.select(".component_name")[0].text.strip()
-        description = componentDescription[name]
+        # Helper variables
         verbalStatus = rawComponent.select(".component-status")[0].text.strip()
-        status = convertNfonComponentStatus(verbalStatus)
-        groupID = groupIDs[providerName]
-        componentID = componentIDs.get(groupID, {}).get(name)
-        provider = providerName
 
-        component = {
+        name = rawComponent.select(".component_name")[0].text.strip()
+        status = convertComponentPlainStatus(verbalStatus)
+
+        components.append({
             'name': name,
-            'description': description,
-            'verbalStatus': verbalStatus,
-            'status': status,
-            'group_id': groupID,
-            'component_id': componentID,
-            'provider': provider
-        }
-
-        components.append(component)
+            'status': status
+        })
 
     return components
 
-
-# Components Helper Functions --------------------------------------------------------------
-# Nothing yet.
-
-
-# Incidents Scrapper ---------------------------------------------------------------------
-def getIncidents():
-    incidents = []
-
+# This function scrapes the incidents from the parsed status web page and returns them in the required format.
+# It lies upon the implementor to make sure ONLY real incidents are returned and not also other objects
+# which may share its format on the provider status page. Further more no filtering should take place. This is handled
+# seperatly at another point in the program. The implementor should make sure ALL incidents are scraped.
+def scrapeIncidents():
+    # The recent incidents are shown in two locations: the active incidents at the beginning of the page and
+    # the history incidents at the end of the pages.
     rawActiveIncidents = parsedWebPage.select("#section_incident_active .page_section")
     rawHistoryIncidents = parsedWebPage.select("#section_main_history .incident")
 
+    incidents = []
     for rawIncident in chain(rawActiveIncidents, rawHistoryIncidents):
-        provider = providerName
-        name = rawIncident.select(".panel-title a")[0].text.strip()
-        link = statusURL + rawIncident.select(".panel-title a")[0]['href'].strip()
-        verbalComponents = rawIncident.select(".panel-body .row")[1].select(".event_inner_text")[0].text.strip()
-        description = scrapIncidentDescription(rawIncident)
+        title = rawIncident.select(".panel-title a")[0].text.strip()
         updates = scrapIncidentUpdates(rawIncident)
-        providerCreatedAt = updates[0]['date']
-        verbalStatus = updates[-1]['verbalStatus']
-        status = updates[-1]['status']
-        componentID = convertNfonComponents(verbalComponents)
-        componentStatus = convertNfonComponentStatus(description, status)
-        locations = rawIncident.select(".panel-body .row")[2].select(".event_inner_text")[0].text
-        message = buildIncidentMessage(**locals())
+        componentNames = rawIncident.select(".panel-body .row")[1].select(".event_inner_text")[0]. \
+                                                                                        text.strip().split(", ")
+        componentStatuses = scrapComponentStatusesFromIncident(rawIncident, len(componentNames))
+        link = statusPageURL + rawIncident.select(".panel-title a")[0]['href'].strip()
+        locations = rawIncident.select(".panel-body .row")[2].select(".event_inner_text")[0].text.strip().split(", ")
 
-        incident = {
-            'name': name,
-            'message': message,
-            'verbalStatus': verbalStatus,
-            'status': status,
+        incidents.append({
+            'title': title,
             'updates': updates,
-            'verbalComponents': verbalComponents,
-            'component_id': componentID,
-            'description': description,
-            'component_status': componentStatus,
-            'provider_created_at': providerCreatedAt,
-            'locations': locations,
-            'provider': provider,
-            'link': link
-        }
-
-        incidents.append(incident)
+            'componentNames': componentNames,
+            'componentStatuses': componentStatuses,
+            'link': link,
+            'locations': locations
+        })
 
     return incidents
 
-
-# Incidents Helper Functions --------------------------------------------------------------
-def scrapIncidentDescription(rawIncident):
-    possibility1 = rawIncident.select(".panel-title .incident_status_description")
-    possibility2 = rawIncident.select(".panel-title .status_description")
-
-    if possibility1:
-        description = possibility1[0].text.strip()
-    elif possibility2:
-        description = possibility2[0].text.strip()
+# This function converts the NFON specific component statuses to the generalized component status enum values
+def convertComponentPlainStatus(verbalStatus):
+    if verbalStatus.lower() == 'operational':
+        status = ComponentStatus.Operational
+    elif verbalStatus.lower() == 'degraded performance':
+        status = ComponentStatus.PerformanceIssues
+    elif verbalStatus.lower() == 'partial service disruption':
+        status = ComponentStatus.PartialOutage
+    elif verbalStatus.lower() == 'service disruption':
+        status = ComponentStatus.MajorOutage
+    elif verbalStatus.lower() == 'planned maintenance': # This happens when the component is being maintained.
+        status = ComponentStatus.MajorOutage
     else:
-        raise Exception("No description scrapped")
+        status = ComponentStatus.Unknown
 
-    return description
+    return status
 
+# This function scrapes the individual updates of the incidents and the returns the required information.
 def scrapIncidentUpdates(rawIncident):
     updates = []
+    for rawUpdate in rawIncident.select(".panel-body .row")[4:]:
+        # Helper variables
+        verbalAction = rawUpdate.select("strong")[1].text.strip()[1:-1]
+        dateRegEx = search(r"CES?T(?P<month>\w*) (?P<day>\d{1,2}), " \
+                           r"(?P<year>\d{4}) (?P<hour>\d{2}):(?P<minute>\d{2}) UTC",
+                           rawUpdate.select(".incident_time")[0].text.strip())
 
-    for update in rawIncident.select(".panel-body .row")[4:]:
-        rawDate = update.select(".incident_time")[0].text
-        endPosition = rawDate.find(" CE")               # find the position of CET or CEST
-        date = convertNfonDate(rawDate[:endPosition])
-        verbalStatus = update.select("strong")[1].text.strip()[1:-1]
-        status = convertNfonIncidentStatus(verbalStatus)
-        info = update.select(".incident_message_details")[0].text
-        message = buildIncidentUpdateMessage(date, verbalStatus, info)
+        action = convertIncidentUpdatePlainAction(verbalAction)
+        date = convertDate(dateRegEx)
+        rawBody = rawUpdate.select(".incident_message_details")[0].text.strip()
 
         updates.append({
+            'action': action,
             'date': date,
-            'verbalStatus': verbalStatus,
-            'status': status,
-            'info': info,
-            'message': message
+            'rawBody': rawBody
         })
 
     return updates
 
-def convertNfonIncidentStatus(verbalStatus):
-    if verbalStatus.lower() == 'investigating':
-        status = 1
-    elif verbalStatus.lower() == 'identified':
-        status = 2
-    elif verbalStatus.lower() == 'monitoring':
-        status = 3
-    elif verbalStatus.lower() == 'resolved':
-        status = 4
+def convertIncidentUpdatePlainAction(verbalAction):
+    if verbalAction.lower() == 'investigating':
+        action = IncidentUpdateAction.Investigating
+    elif verbalAction.lower() == 'identified':
+        action = IncidentUpdateAction.Identified
+    elif verbalAction.lower() == 'monitoring':
+        action = IncidentUpdateAction.Watching
+    elif verbalAction.lower() == 'resolved':
+        action = IncidentUpdateAction.Fixed
+    elif verbalAction.lower() == 'update':
+        action = IncidentUpdateAction.Update
     else:
-        status = -1
+        action = IncidentUpdateAction.Unknown
 
-    return status
+    return action
 
+def scrapComponentStatusesFromIncident(rawIncident, numberOfComponents):
+    # This is found in the active incidents.
+    firstPossibleLocation = rawIncident.select(".panel-title .incident_status_description")
+    # This is found in the History.
+    secondPossibleLocation = rawIncident.select(".panel-title .status_description")
 
-# Maintenances Scrapper --------------------------------------------------------------
-@maintenancesGetterWrapper(providerName)
-def getMaintenances():
-    # We are not interested in maintenances right now.
-    pass
-    # maintenances = []
-
-    # rawMaintenances = parsedWebPage.select("#section_maintenance_scheduled .page_section")
-
-    # for rawMaintenance in rawMaintenances:
-    #     ######### Individual Scrapping Logic
-    #     name = rawMaintenance.select(".panel-title a")[0].text
-    #     message = rawMaintenance.select(".panel-body .row")[3].select(".event_inner_text")[0].text
-    #     nfonDate = rawMaintenance.select(".panel-body .row")[0].select(".event_inner_text")[0].text
-    #     endPosition = nfonDate.find(" -")
-    #     scheduledAt = convertNfonDate(nfonDate[:endPosition])
-    #     completedAt = convertNfonDate(nfonDate[:endPosition-5] + nfonDate[endPosition+3:endPosition+8])
-    #     components = rawMaintenance.select(".panel-body .row")[1].select(".event_inner_text")[0].text
-    #     locations = rawMaintenance.select(".panel-body .row")[2].select(".event_inner_text")[0].text
-    #     provider = providerName
-    #     #########
-
-    #     maintenance = {
-    #         'name': name,
-    #         'message': message,
-    #         'nfonDate': nfonDate,
-    #         'scheduled_at': scheduledAt,
-    #         'completed_at': completedAt,
-    #         'components': components,
-    #         'locations': locations,
-    #         'provider': provider
-    #     }
-
-    #     if isRelevantMaintenance(providerName, maintenance):
-    #         maintenances.append(maintenance)
-
-    # return maintenances
-
-
-# Maintenances Helper Functions --------------------------------------------------------------
-# Nothing yet.
-
-
-# General Helper Functions ----------------------------------------------------------
-def convertNfonComponents(verbalComponents):
-    componentIDs = getCachetComponents("group: {component: id}")
-
-    if verbalComponents.find(",") != -1:
-        componentID = [componentIDs[providerName][component] for component in verbalComponents.split(", ")][0]
+    if firstPossibleLocation:
+        verbalStatus = firstPossibleLocation[0].text.strip()
+    elif secondPossibleLocation:
+        verbalStatus = secondPossibleLocation[0].text.strip()
     else:
-        component = verbalComponents
-        if component in componentIDs[providerName]:
-            componentID = componentIDs[providerName][component]
-        else:
-            componentID = None
+        verbalStatus = "Unknown"
+    
+    status = convertComponentPlainStatus(verbalStatus)
+    statuses = [status for _ in range(numberOfComponents)]
 
-    return componentID
+    return statuses
 
-def convertNfonComponentStatus(verbalStatus, incidentStatus=1):
-    if incidentStatus == 4:
-        status = 1
-    else:
-        if verbalStatus.lower() == 'operational':
-            status = 1
-        elif verbalStatus.lower() == 'degraded performance':
-            status = 2
-        elif verbalStatus.lower() == 'partial service disruption':
-            status = 3
-        elif verbalStatus.lower() == 'service disruption' or verbalStatus.lower() == 'planned maintenance':
-            status = 4
-        else:
-            status = -1
+def convertDate(dateRegEx):
+    year = int(dateRegEx.group('year'))
+    month = list(month_name).index(dateRegEx.group('month'))
+    day = int(dateRegEx.group('day'))
+    hour = int(dateRegEx.group('hour'))
+    minute = int(dateRegEx.group('minute'))
 
-    return status
-
-def convertNfonDate(nfonDate):
-    month, day, year, time = nfonDate.split()
-    day = day[:-1]
-
-    if month.lower() == "january":
-        month = 1
-    elif month.lower() == "february":
-        month = 2
-    elif month.lower() == "march":
-        month = 3
-    elif month.lower() == "april":
-        month = 4
-    elif month.lower() == "may":
-        month = 5
-    elif month.lower() == "june":
-        month = 6
-    elif month.lower() == "july":
-        month = 7
-    elif month.lower() == "august":
-        month = 8
-    elif month.lower() == "september":
-        month = 9
-    elif month.lower() == "october":
-        month = 10
-    elif month.lower() == "november":
-        month = 11
-    elif month.lower() == "december":
-        month = 12
-
-    return "{year}-{month}-{day} {time}".format(year=year,month=month,day=day,time=time)
-
-
-# Module Testing --------------------------------------------------------------
-if __name__ == '__main__':
-    # Test this module
-    from pprint import pprint
-    debug = True
-
-    print("-----------------Components------------------")
-    pprint(getComponents())
-    print("-----------------Incidents-------------------")
-    pprint(getIncidents())
+    return datetime(year, month, day, hour, minute)
 

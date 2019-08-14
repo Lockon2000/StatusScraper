@@ -25,7 +25,7 @@ def createComponent(component):
         'name': component['name'],
         'description': component['description'],
         # component['status'] is an enum, so it must be converted to the appropriate status code specific to cachet.
-        'status': convertComponentStatusEnumValue(component['status']),
+        'status': convertComponentEnumStatus(component['status']),
         'group_id': component['groupID'],
         # Whether the component is enabled or disabled.
         'enabled': 1
@@ -70,7 +70,7 @@ def readComponent(componentID):
     result = {
             'name': data['name'],
             'ID': data['id'],
-            'status': convertComponentStatusPlainValue(data['status']),
+            'status': convertComponentPlainStatus(data['status']),
             'groupID': data['group_id']
     }
 
@@ -102,7 +102,7 @@ def readComponents(form="group: {component: ID}", caseSensitivity=True):
         {
             'name': component['name'],
             'ID': component['id'],
-            'status': convertComponentStatusPlainValue(component['status']),
+            'status': convertComponentPlainStatus(component['status']),
             'groupID': component['group_id']
         }
         for component in data
@@ -120,7 +120,7 @@ def updateComponent(componentID, componentStatus):
     #   failed: Will raise a requests.HTTPError exception.
 
     payload = {
-        'status': convertComponentStatusEnumValue(componentStatus)
+        'status': convertComponentEnumStatus(componentStatus)
     }
 
 
@@ -152,36 +152,36 @@ def deleteComponent(componentID):
 # Helper functions -----------------------------------------------------------------------------------------------------
 # This function is needed to convert the generalised component statuses as they are implemented
 # as general enums to the cachet specific status codes for a component.
-def convertComponentStatusEnumValue(componentStatusEnumValue):
+def convertComponentEnumStatus(componentEnumStatus):
     # Input:
-    #   componentStatusEnumValue: An Enum value of class ComponentStatus.
+    #   componentEnumStatus: An Enum value of class ComponentStatus.
     # Output:
     #   succeeded: The corresponding cachet status code for the ComponentStatus enum value.
     #   failed: Will return `None`
 
-    if   componentStatusEnumValue == ComponentStatus.Operational:
+    if   componentEnumStatus == ComponentStatus.Operational:
         return 1
-    elif componentStatusEnumValue == ComponentStatus.PerformanceIssues:
+    elif componentEnumStatus == ComponentStatus.PerformanceIssues:
         return 2
-    elif componentStatusEnumValue == ComponentStatus.PartialOutage:
+    elif componentEnumStatus == ComponentStatus.PartialOutage:
         return 3
-    elif componentStatusEnumValue == ComponentStatus.MajorOutage:
+    elif componentEnumStatus == ComponentStatus.MajorOutage:
         return 4
 
-# The inverse of `convertComponentStatusEnumValue`
-def convertComponentStatusPlainValue(componentStatusPlainValue):
+# The inverse of `convertComponentEnumStatus`
+def convertComponentPlainStatus(componentPlainStatus):
     # Input:
-    #   componentStatusPlainValue: A cachet component status code.
+    #   componentPlainStatus: A cachet component status code.
     # Output:
     #   succeeded: The corresponding cachet status code for the ComponentStatus enum value.
     #   failed: Will return `None`
 
-    if   componentStatusPlainValue == 1:
+    if   componentPlainStatus == 1:
         return ComponentStatus.Operational
-    elif componentStatusPlainValue == 2:
+    elif componentPlainStatus == 2:
         return ComponentStatus.PerformanceIssues
-    elif componentStatusPlainValue == 3:
+    elif componentPlainStatus == 3:
         return ComponentStatus.PartialOutage
-    elif componentStatusPlainValue == 4:
+    elif componentPlainStatus == 4:
         return ComponentStatus.MajorOutage
 

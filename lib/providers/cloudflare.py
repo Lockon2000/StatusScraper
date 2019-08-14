@@ -7,8 +7,15 @@ import re
 from lib.utilities.formatting import buildIncidentMessage
 from lib.utilities.formatting import buildIncidentUpdateMessage
 from lib.utilities.tools import getThenParse
+from lib.utilities.wrappers import componentsGetterWrapper
+from lib.utilities.wrappers import incidentsGetterWrapper
+from lib.utilities.wrappers import maintenancesGetterWrapper
 from lib.utilities.cachet import getCachetGroups
 from lib.utilities.cachet import getCachetComponents
+from lib.utilities.filtering import isRelevantComponent
+from lib.utilities.filtering import isRelevantIncident
+from lib.utilities.filtering import isRelevantMaintenance
+from lib.utilities.hashing import setIncidentMarker
 
 
 providerName = "CloudFlare"
@@ -19,14 +26,15 @@ debug = False
 
 
 # Components Scrapper ----------------------------------------------------------------------
+@componentsGetterWrapper(providerName)
 def getComponents():
     components = []
 
     groupIDs = getCachetGroups("group: id")
     componentIDs = getCachetComponents("groupID: {component: id}")
-    rawComponents = parsedWebPage.select(".component-container:last-child .child-components-container .component-inner-container")
+    rawServiceComponents = parsedWebPage.select(".component-container:last-child .child-components-container .component-inner-container")
 
-    for rawComponent in rawComponents:
+    for rawComponent in rawServiceComponents:
         name = rawComponent.select(".name")[0].text.strip()
         description = "-"
         verbalStatus = rawComponent.select(".component-status")[0].text.strip()
@@ -45,7 +53,32 @@ def getComponents():
             'provider': provider
         }
 
-        components.append(component)
+        if isRelevantComponent(providerName, component):
+            components.append(component)
+
+    rawEuropeComponent = parsedWebPage.select(".component-container:first-child > .component-inner-container")[0]
+
+    name = rawEuropeComponent.select(".name")[0].text.strip()
+    description = "-"
+    verbalStatus = rawEuropeComponent.select(".component-status")[0].text.strip()
+    if verbalStatus == "Partial Outage" or verbalStatus == "Degraded Performance":
+        verbalStatus = "Re-routed"
+    status = convertCloudFlareComponentStatus(verbalStatus)
+    groupID = groupIDs.get(providerName)
+    componentID = componentIDs.get(groupID, {}).get(name)
+    provider = providerName
+
+    europeComponent = {
+        'name': name,
+        'description': description,
+        'verbalStatus': verbalStatus,
+        'status': status,
+        'group_id': groupID,
+        'component_id': componentID,
+        'provider': provider
+    }
+    if isRelevantComponent(providerName, component):
+        components.append(europeComponent)
 
     return components
 
@@ -54,6 +87,7 @@ def getComponents():
 
 
 # Incidents Scrapper ---------------------------------------------------------------------
+@incidentsGetterWrapper(providerName)
 def getIncidents():
     incidents = []
 
@@ -96,7 +130,9 @@ def getIncidents():
             'link': link
         }
 
-        incidents.append(incident)
+        if isRelevantIncident(providerName, incident):
+            setIncidentMarker(incident)
+            incidents.append(incident)
 
     return incidents
 
@@ -105,7 +141,9 @@ def getIncidents():
 def convertIncidentDescription(classes):
     for cls in classes:
         if re.search("impact", cls):
-            if cls == "impact-minor":
+            if cls == "impact-none":
+                return "operational"
+            elif cls == "impact-minor":
                 return 'degraded performance'
             elif cls == "impact-major":
                 return 'partial outage'
@@ -174,7 +212,12 @@ def convertIncidentDate(dateMatch):
 
 def scrapCloudFlareComponents(text):
     matches = re.search(r"Cloudflare Sites and Services \((.*)\)", text)
-    return matches.group(1) if matches else None
+    serviceComponents = matches.group(1) if matches else None
+    matches = re.search(r"Europe", text)
+    if matches:
+        return serviceComponents+", Europe"
+    else:
+        return serviceComponents
 
 
 # General Helper Functions ----------------------------------------------------------
@@ -183,6 +226,8 @@ def convertCloudFlareComponentStatus(verbalStatus, incidentStatus=1):
         status = 1
     else:
         if verbalStatus.lower() == 'operational':
+            status = 1
+        elif verbalStatus.lower() == 're-routed':
             status = 1
         elif verbalStatus.lower() == 'degraded performance':
             status = 2
@@ -249,6 +294,7 @@ if __name__ == '__main__':
 
     print("-----------------Components------------------")
     pprint(getComponents())
-    print("-----------------Incidents-------------------")
-    pprint(getIncidents())
-
+    # print("-----------------Incidents-------------------")
+    # pprint(getIncidents())
+    # print("-----------------Maintenances----------------")
+    # pprint(getMaintenances())

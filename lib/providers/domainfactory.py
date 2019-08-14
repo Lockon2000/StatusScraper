@@ -3,8 +3,15 @@ import re
 from lib.utilities.formatting import buildIncidentMessage
 from lib.utilities.formatting import buildIncidentUpdateMessage
 from lib.utilities.tools import getThenParse
+from lib.utilities.wrappers import componentsGetterWrapper
+from lib.utilities.wrappers import incidentsGetterWrapper
+from lib.utilities.wrappers import maintenancesGetterWrapper
 from lib.utilities.cachet import getCachetGroups
 from lib.utilities.cachet import getCachetComponents
+from lib.utilities.filtering import isRelevantComponent
+from lib.utilities.filtering import isRelevantIncident
+from lib.utilities.filtering import isRelevantMaintenance
+from lib.utilities.hashing import setIncidentMarker
 
 
 providerName = 'DomainFactory'
@@ -15,6 +22,7 @@ debug = False
 
 
 # Components Scrapper ----------------------------------------------------------------------
+@componentsGetterWrapper(providerName)
 def getComponents():
     # DomainFactory doesn't expose Components at the time being
     components = []
@@ -38,7 +46,8 @@ def getComponents():
         'provider': provider
     }
 
-    components.append(generalComponent)
+    if isRelevantComponent(providerName, generalComponent):
+        components.append(generalComponent)
 
     return components
 
@@ -48,6 +57,7 @@ def getComponents():
 
 
 # Incidents Scrapper ---------------------------------------------------------------------
+@incidentsGetterWrapper(providerName)
 def getIncidents():
     incidents = []
 
@@ -86,7 +96,9 @@ def getIncidents():
             'link': link
         }
 
-        incidents.append(incident)
+        if isRelevantIncident(providerName, incident):
+            setIncidentMarker(incident)
+            incidents.append(incident)
 
     return incidents
 
@@ -133,6 +145,17 @@ def scrapIncidentUpdates(rawIncident):
     return updates
 
 
+# Maintenances Scrapper --------------------------------------------------------------
+@maintenancesGetterWrapper(providerName)
+def getMaintenances():
+    # We are not interested in maintenances right now.
+    pass
+
+
+# Maintenances Helper Functions --------------------------------------------------------------
+# Nothing yet.
+
+
 # General Helper Functions ----------------------------------------------------
 def convertDomainfactoryComponentStatus(incidentStatus):
     if incidentStatus == 1:
@@ -168,4 +191,5 @@ if __name__ == '__main__':
     print("-----------------Incidents-------------------")
     pprint(getIncidents())
     pprint(incidentPieces)
-
+    # print("-----------------Maintenances----------------")
+    # pprint(getMaintenances())

@@ -18,16 +18,16 @@ def createGroup(groupName):
     #   failed: Will raise a requests.HTTPError exception.
 
     payload = {
-        'name':         groupName,
+        'name': groupName,
         # Whether the group is publicly visible or not.
         # NOTE: this key value pair is not documented in the API docs. It should therefore be
         # tested if it has any effect or not at the nearest opportunity.
-        'visible':      1,
+        'visible': 1,
         # Different options for 'collapsed':
         # 0: never collapsed
         # 1: always collapsed
         # 2: collapsed as long as there are no problems
-        'collapsed':    1
+        'collapsed': 1
     }
 
     # Make an authenticated post request to the appropriate end point to create the group

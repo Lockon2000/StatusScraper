@@ -7,6 +7,7 @@ class ComponentStatus(IntEnum):
     PerformanceIssues = 2
     PartialOutage = 3
     MajorOutage = 4
+    Unknown = -1
 
 @unique
 class IncidentStatus(IntEnum):
@@ -14,12 +15,14 @@ class IncidentStatus(IntEnum):
     Identified = 2
     Watching = 3
     Fixed = 4
+    Unknown = -1
 
 @unique
-class IncidentUpdateType(IntEnum):
+class IncidentUpdateAction(IntEnum):
     Investigating = 1
     Identified = 2
     Watching = 3
     Fixed = 4
     Update = 5
+    Unknown = -1
 

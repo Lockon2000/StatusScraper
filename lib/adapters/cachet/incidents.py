@@ -23,9 +23,9 @@ def createIncident(incident):
     #   failed: Will raise a requests.HTTPError exception.    
 
     payload = {
-        'name': incident['name'],
+        'name': incident['title'],
         'message': incident['body'],
-        'status': convertIncidentStatusEnumValue(incident['status']),
+        'status': convertIncidentEnumStatus(incident['status']),
         # Whether the incident is publicly visible
         'visible': 1,
         # Whether the incident should be sticked
@@ -50,7 +50,8 @@ def createIncident(incident):
 
     return result
 
-# This function updates an existing incident with a new update reporting new events
+# This function updates an existing incident with a new update reporting new events. Also if the incident update being
+# created has status `IncidentStatus.Fixed` then the parent incident is being unsticked.
 def createIncidentUpdate(incidentID, incidentUpdate):
     # Input:
     #   incidentID: The ID of the incident we wish to update.
@@ -61,7 +62,7 @@ def createIncidentUpdate(incidentID, incidentUpdate):
     #              required information is specified in the docs at incidents under adapters.
     #   failed: Will raise a requests.HTTPError exception.
     payload = {
-        'status': convertIncidentStatusEnumValue(incidentUpdate['incidentStatus']),
+        'status': convertIncidentEnumStatus(incidentUpdate['incidentStatus']),
         'message': incidentUpdate['formatedBody']
     }
 
@@ -78,6 +79,22 @@ def createIncidentUpdate(incidentID, incidentUpdate):
     # Create a dict representing the created component with the required information
     data = response.json()['data']
     result = {'ID': data['id']}
+
+    # If incident update had a status of `IncidentStatus.Fixed` then remove the sticky property of the parent incident
+    if incidentUpdate['incidentStatus'] == IncidentStatus.Fixed:
+            payload = {
+                'stickied': 0
+            }
+
+            # Make an authenticated put request to the appropriate end point to update the incident
+            response = requests.put("{API}/incidents/{incidentID}".format(API=API, incidentID=incidentID),
+                                    data=json.dumps(payload),
+                                    headers={
+                                        'X-Cachet-Token': APIKey,
+                                        'Content-Type': "application/json"
+                                    })
+            # Raise HTTPError for all unsuccessful status codes.
+            response.raise_for_status()
 
     return result
 
@@ -102,9 +119,9 @@ def readIncident(incidentID):
     # Create the dict containing all required information about the incident
     data = response.json()['data']
     result = {
-            'name': data['name'],
+            'title': data['name'],
             'ID': data['id'],
-            'status': convertIncidentStatusPlainValue(data['status']),
+            'status': convertIncidentPlainStatus(data['status']),
             'body': data['message']
     }
 
@@ -134,9 +151,9 @@ def readIncidents():
     data = response.json()['data']
     result = [
         {
-            'name': incident['name'],
+            'title': incident['name'],
             'ID': incident['id'],
-            'status': convertIncidentStatusPlainValue(incident['status']),
+            'status': convertIncidentPlainStatus(incident['status']),
             'body': incident['message']
         }
         for incident in data
@@ -172,7 +189,7 @@ def readIncidentUpdate(incidentID, incidentUpdateID):
     data = response.json()['data']
     result = {
             'ID': data['id'],
-            'incidentStatus': convertIncidentStatusPlainValue(data['status']),
+            'incidentStatus': convertIncidentPlainStatus(data['status']),
             'formatedBody': data['message']
     }
 
@@ -203,7 +220,7 @@ def readIncidentUpdates(incidentID):
     result = [
         {
             'ID': incidentUpdate['id'],
-            'incidentStatus': convertIncidentStatusPlainValue(incidentUpdate['status']),
+            'incidentStatus': convertIncidentPlainStatus(incidentUpdate['status']),
             'formatedBody': incidentUpdate['message']
         }
         for incidentUpdate in data
@@ -235,7 +252,8 @@ def updateIncident(incidentID, incidentBody):
     response.raise_for_status()
 
 # This function updates an existing incident update with a new body and incident status given its and 
-# the incident ID.
+# the parent incident's ID. Also if the incident update is being set to status `IncidentStatus.Fixed` then the parent
+# incident is being unsticked.
 def updateIncidentUpdate(incidentID, incidentUpdate):
     # Input:
     #   incidentUpdate: A dict representing the incident update containing all necessary information.
@@ -246,7 +264,7 @@ def updateIncidentUpdate(incidentID, incidentUpdate):
     #   failed: Will raise a requests.HTTPError exception.
 
     payload = {
-        'status': convertIncidentStatusEnumValue(incidentUpdate['incidentStatus']),
+        'status': convertIncidentEnumStatus(incidentUpdate['incidentStatus']),
         'message': incidentUpdate['formatedBody']
     }
 
@@ -263,6 +281,22 @@ def updateIncidentUpdate(incidentID, incidentUpdate):
                             })
     # Raise HTTPError for all unsuccessful status codes.
     response.raise_for_status()
+
+    # If incident was updated to a status of `IncidentStatus.Fixed` then remove the sticky property of the incident
+    if incidentUpdate['incidentStatus'] == IncidentStatus.Fixed:
+            payload = {
+                'stickied': 0
+            }
+
+            # Make an authenticated put request to the appropriate end point to update the incident
+            response = requests.put("{API}/incidents/{incidentID}".format(API=API, incidentID=incidentID),
+                                    data=json.dumps(payload),
+                                    headers={
+                                        'X-Cachet-Token': APIKey,
+                                        'Content-Type': "application/json"
+                                    })
+            # Raise HTTPError for all unsuccessful status codes.
+            response.raise_for_status()
 
 # This function deletes an incident from cachet given its ID.
 def deleteIncident(incidentID):
@@ -301,34 +335,34 @@ def deleteIncidentUpdate(incidentUpdateID, incidentID):
 # Helper functions -----------------------------------------------------------------------------------------------------
 # This function is needed to convert the generalised incident statuses as they are implemented
 # as a general enum to the cachet specific status codes for an incident.
-def convertIncidentStatusEnumValue(incidentStatusEnumValue):
+def convertIncidentEnumStatus(incidentEnumStatus):
     # Input:
-    #   incidentStatusEnumValue: An Enum value of class IncidentStatus.
+    #   incidentEnumStatus: An Enum value of class IncidentStatus.
     # Output:
     #   The corresponding cachet status code for the IncidentStatus enum value.
-    if   incidentStatusEnumValue == IncidentStatus.Investigating:
+    if   incidentEnumStatus == IncidentStatus.Investigating:
         return 1
-    elif incidentStatusEnumValue == IncidentStatus.Identified:
+    elif incidentEnumStatus == IncidentStatus.Identified:
         return 2
-    elif incidentStatusEnumValue == IncidentStatus.Watching:
+    elif incidentEnumStatus == IncidentStatus.Watching:
         return 3
-    elif incidentStatusEnumValue == IncidentStatus.Fixed:
+    elif incidentEnumStatus == IncidentStatus.Fixed:
         return 4
 
-# The inverse of `convertIncidentStatusEnumValue`
-def convertIncidentStatusPlainValue(incidentStatusPlainValue):
+# The inverse of `convertIncidentEnumStatus`
+def convertIncidentPlainStatus(incidentPlainStatus):
     # Input:
-    #   incidentStatusPlainValue: A cachet incident status code.
+    #   incidentPlainStatus: A cachet incident status code.
     # Output:
     #   succeeded: The corresponding cachet status code for the IncidentStatus enum value.
     #   failed: Will return `None`
 
-    if   incidentStatusPlainValue == 1:
+    if   incidentPlainStatus == 1:
         return IncidentStatus.Investigating
-    elif incidentStatusPlainValue == 2:
+    elif incidentPlainStatus == 2:
         return IncidentStatus.Identified
-    elif incidentStatusPlainValue == 3:
+    elif incidentPlainStatus == 3:
         return IncidentStatus.Watching
-    elif incidentStatusPlainValue == 4:
+    elif incidentPlainStatus == 4:
         return IncidentStatus.Fixed
 

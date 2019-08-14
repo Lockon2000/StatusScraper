@@ -1,6 +1,6 @@
 from lib.internals.structures.enums import ComponentStatus
 from lib.internals.structures.enums import IncidentStatus
-from lib.internals.structures.enums import IncidentUpdateType
+from lib.internals.structures.enums import IncidentUpdateAction
 
 
 # Groups API Tests -----------------------------------------------------------------------------------------------------
@@ -201,7 +201,7 @@ class CreateIncidentTestsIO:
 
     inputs = {
         "incident": {
-            "name": "test_create",
+            "title": "test_create",
             "ID": None,
             "status": IncidentStatus.Investigating,
             "verbalStatus": "Investigating",
@@ -227,7 +227,7 @@ class CreateIncidentTestsIO:
 class CreateIncidentUpdateTestsIO:
     fixture = {
         "incident": {
-            "name": "test_create_update",
+            "title": "test_create_update",
             "ID": None,
             "status": IncidentStatus.Investigating,
             "verbalStatus": "Investigating",
@@ -247,7 +247,7 @@ class CreateIncidentUpdateTestsIO:
 
     inputs = {
         "incidentUpdate": {
-            "type": IncidentUpdateType.Investigating,
+            "action": IncidentUpdateAction.Investigating,
             "ID": None,
             "date": None, # Normally not allowable when passed to the function but is okay for testing purposes.
             "incidentID": None, # The same comment as for the "date" key.
@@ -265,7 +265,7 @@ class CreateIncidentUpdateTestsIO:
 class ReadIncidentTestsIO:
     fixture = {
         "incident": {
-            "name": "test_read",
+            "title": "test_read",
             "ID": None,
             "status": IncidentStatus.Investigating,
             "verbalStatus": "Investigating",
@@ -289,14 +289,14 @@ class ReadIncidentTestsIO:
 
     outputs = {
         "returnedType": dict,
-        "returnedDictKeys": ["name", "ID", "status", "body"]
+        "returnedDictKeys": ["title", "ID", "status", "body"]
     }
 
 class ReadIncidentsTestsIO:
     fixture = {
         "incidents": [
             {
-                "name": "test_read1",
+                "title": "test_read1",
                 "ID": None,
                 "status": IncidentStatus.Investigating,
                 "verbalStatus": "Investigating",
@@ -313,7 +313,7 @@ class ReadIncidentsTestsIO:
                 "language": None # The same comment as for the "updates" key.
             },
             {   
-                "name": "test_read2",
+                "title": "test_read2",
                 "ID": None,
                 "status": IncidentStatus.Fixed,
                 "verbalStatus": "Fixed",
@@ -330,7 +330,7 @@ class ReadIncidentsTestsIO:
                 "language": None # The same comment as for the "updates" key.
             },
             {
-                "name": "test_read3",
+                "title": "test_read3",
                 "ID": None,
                 "status": IncidentStatus.Investigating,
                 "verbalStatus": "Investigating",
@@ -362,7 +362,7 @@ class ReadIncidentsTestsIO:
 class ReadIncidentUpdateTestsIO:
     fixture = {
         "incident": {
-            "name": "test_read",
+            "title": "test_read",
             "ID": None,
             "status": IncidentStatus.Investigating,
             "verbalStatus": "Investigating",
@@ -379,7 +379,7 @@ class ReadIncidentUpdateTestsIO:
             "language": None # The same comment as for the "updates" key.
         },
         "update":{
-            "type": IncidentUpdateType.Investigating,
+            "action": IncidentUpdateAction.Investigating,
             "ID": None,
             "date": None, # Normally not allowable when passed to the function but is okay for testing purposes.
             "incidentID": None, # The same comment as for the "date" key.
@@ -401,7 +401,7 @@ class ReadIncidentUpdateTestsIO:
 class ReadIncidentUpdatesTestsIO:
     fixture = {
         "incident": {
-            "name": "test_read",
+            "title": "test_read",
             "ID": None,
             "status": IncidentStatus.Investigating,
             "verbalStatus": "Investigating",
@@ -419,7 +419,7 @@ class ReadIncidentUpdatesTestsIO:
         },
         "updates": [
             {
-                "type": IncidentUpdateType.Investigating,
+                "action": IncidentUpdateAction.Investigating,
                 "ID": None,
                 "date": None, # Normally not allowable when passed to the function but is okay for testing purposes.
                 "incidentID": None, # The same comment as for the "date" key.
@@ -428,7 +428,7 @@ class ReadIncidentUpdatesTestsIO:
                 "formatedBody": "Test1 test1 test1"
             },
             {
-                "type": IncidentUpdateType.Identified,
+                "action": IncidentUpdateAction.Identified,
                 "ID": None,
                 "date": None, # Normally not allowable when passed to the function but is okay for testing purposes.
                 "incidentID": None, # The same comment as for the "date" key.
@@ -437,7 +437,7 @@ class ReadIncidentUpdatesTestsIO:
                 "formatedBody": "Test2 test2 test2"
             },
             {
-                "type": IncidentUpdateType.Update,
+                "action": IncidentUpdateAction.Update,
                 "ID": None,
                 "date": None, # Normally not allowable when passed to the function but is okay for testing purposes.
                 "incidentID": None, # The same comment as for the "date" key.
@@ -461,7 +461,7 @@ class ReadIncidentUpdatesTestsIO:
 class UpdateIncidentTestsIO:
     fixture = {
         "incident": {
-            "name": "test_update",
+            "title": "test_update",
             "ID": None,
             "status": IncidentStatus.Investigating,
             "verbalStatus": "Investigating",
@@ -490,7 +490,7 @@ class UpdateIncidentTestsIO:
 class UpdateIncidentUpdateTestsIO:
     fixture = {
         "incident": {
-            "name": "test_update_update",
+            "title": "test_update_update",
             "ID": None,
             "status": IncidentStatus.Investigating,
             "verbalStatus": "Investigating",
@@ -507,7 +507,7 @@ class UpdateIncidentUpdateTestsIO:
             "language": None # The same comment as for the "updates" key.
         },
         "update": {
-            "type": IncidentUpdateType.Investigating,
+            "action": IncidentUpdateAction.Investigating,
             "ID": None,
             "date": None, # Normally not allowable when passed to the function but is okay for testing purposes.
             "incidentID": None, # The same comment as for the "date" key.
@@ -519,7 +519,7 @@ class UpdateIncidentUpdateTestsIO:
 
     inputs = {
         "update": {
-            "type": IncidentUpdateType.Investigating,
+            "action": IncidentUpdateAction.Investigating,
             "ID": None,
             "date": None, # Normally not allowable when passed to the function but is okay for testing purposes.
             "incidentID": None, # The same comment as for the "date" key.

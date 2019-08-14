@@ -22,6 +22,9 @@ The scrapeComponents wrapper function, roughly, does the following:
 - `'ID'`:
     - Type: `int` or `NoneType`
     - Description: This key should hold the component ID if it is no new component. Otherwise it should hold `None`.
+- `'description'`:
+    - Type: `string`
+    - Description: This key should hold the description of the component. A summirised insight to what it denotes.
 - `'groupName'`:
     - Type: `string` or `NoneType`
     - Description: Holds the name of the group this component belongs to. Normally the group to which this component belongs will already have been 
@@ -34,7 +37,10 @@ The scrapeComponents wrapper function, roughly, does the following:
                    happen that the component still doesn't have a group.
 - `'verbalStatus'`:
     - Type: `string`
-    - Description: Holds the German verbal status of a component.
+    - Description: Holds the "German" verbal status of a component.
+- `'provider'`:
+    - Type: `string`
+    - Description: Holds the name of the provider to which this component belongs in the correct format.
 
 
 # Incidents Scraper Wrapper
@@ -74,6 +80,12 @@ The scrapeIncidents wrapper function, roughly, does the following:
 - `'lastUpdateDate'`:
     - Type: `datetime.datetime`
     - Description: Holds the date when this incident was last updated.
+- `'provider'`:
+    - Type: `string`
+    - Description: Holds the name of the provider to which this incident belongs in the correct format.
+- `'language'`:
+    - Type: `string`
+    - Description: This key should hold the language of the status site to which this component belongs.
 
 ## Data to be Completed for The Incidents Updates
 - `'ID'`:

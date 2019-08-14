@@ -6,36 +6,40 @@ A successfully created incident with `createIncident` should return a `dict` wit
     - Description: This key should hold the newly created incidents ID.
     - Remarks Specific to an employed Status Site:
         - Cachet:
-            - The cachet API calls this piece of information `'id'` in the context of an incident and `'incident_id'` in other contexts.
+            - The cachet API calls this piece of information `'id'` in the context of an incident and `'incident_id'`
+              in other contexts.
 
 
 # Specification for the retrieved incidents from a status site
 
-A successful retrieval of an incident from the status site with `readIncident` should return a `dict` which represents the incident and contains the
-following keys (In the case of retrieving all incidents with `readIncidents` it should return a `list` with `dicts` representing the incidents):
-- `'name'`:
+A successful retrieval of an incident from the status site with `readIncident` should return a `dict` which represents
+the incident and contains the following keys (In the case of retrieving all incidents with `readIncidents` it should
+return a `list` with `dicts` representing the incidents):
+- `'title'`:
     - Type: `string`
-    - Description: This key should hold a string with the name of the group.
+    - Description: This key should hold a string with the title of the incident.
     - Remarks Specific to an employed Status Site:
         - Cachet:
             - The cachet API calls this piece of information `'name'`.
 - `'ID'`:
     - Type: `int`
-    - Description: This key should hold the group ID of the group.
+    - Description: This key should hold the ID of the incident.
     - Remarks Specific to an employed Status Site:
         - Cachet:
-            - The cachet API calls this piece of information `'id'` in the context of a group and `'group_id'` in other contexts.
+            - The cachet API calls this piece of information `'id'` in the context of an incident and `'incident_id'`
+              in other contexts.
 - `'status'`:
     - Type: `enum:IncidentStatus`
-    - Description: This key should hold the incident status as an IncidentStatus enum. See the docs for enums under structures for more
-                   information.
+    - Description: This key should hold the incident status as an IncidentStatus enum. See the docs for enums under
+                   structures for more information.
     - Remarks Specific to an employed Status Site:
         - Cachet:
-            - The cachet API calls this piece of information `'status'` in the context of a component and `'component_status'` in all other
-              contexts.
+            - The cachet API calls this piece of information `'status'` in the context of a component and
+              `'component_status'` in all other contexts.
 - `'body'`:
     - Type: `string`
-    - Description: This key should hold the main body (the part of the incident where the marker is secretly embedded) of the incident.
+    - Description: This key should hold the main body (the part of the incident where the marker is secretly embedded)
+                   of the incident.
     - Remarks Specific to an employed Status Site:
         - Cachet:
             - The cachet API calls this piece of information `'message'`.
@@ -52,9 +56,9 @@ A successfully created incident update with `createIncidentUpdate` should return
 
 # Specification for the retrieved incident updates from a status site
 
-A successful retrieval of an incident update from the status site with `readIncidentUpdate` should return a `dict` which
-represents the incident update and contains the following keys (In the case of retrieving all incidents updates with
-`readIncidentUpdates` it should return a `list` with `dicts` representing the incident updates):
+A successful retrieval of an incident update from the status site with `readIncidentUpdate` should return a `dict`
+which represents the incident update and contains the following keys (In the case of retrieving all incidents updates
+with `readIncidentUpdates` it should return a `list` with `dicts` representing the incident updates):
 - `'ID'`:
     - Type: `int`
     - Description: This key should hold the ID of the incident udpate.

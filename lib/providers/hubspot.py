@@ -6,8 +6,15 @@ import re
 from lib.utilities.formatting import buildIncidentMessage
 from lib.utilities.formatting import buildIncidentUpdateMessage
 from lib.utilities.tools import getThenParse
+from lib.utilities.wrappers import componentsGetterWrapper
+from lib.utilities.wrappers import incidentsGetterWrapper
+from lib.utilities.wrappers import maintenancesGetterWrapper
 from lib.utilities.cachet import getCachetGroups
 from lib.utilities.cachet import getCachetComponents
+from lib.utilities.filtering import isRelevantComponent
+from lib.utilities.filtering import isRelevantIncident
+from lib.utilities.filtering import isRelevantMaintenance
+from lib.utilities.hashing import setIncidentMarker
 
 
 providerName = "HubSpot"
@@ -18,6 +25,7 @@ debug = False
 
 
 # Components Scrapper ----------------------------------------------------------------------
+@componentsGetterWrapper(providerName)
 def getComponents():
     components = []
 
@@ -26,30 +34,30 @@ def getComponents():
     rawComponents = parsedWebPage.select(".components-section .component-container")
 
     componentDescription = {
-        "HubSpot Marketing Application": "Sämtliche Komponenten der HubSpot-Marketing-Software, auch bekannt als app.hubspot.com.",
-        "HubSpot APIs": "Die HubSpot-APIs umfassen die Verbindungen zu den Anwendungen für Kontakte, Analytics, Workflows, Berichte, Formulare und mehr.",
-        "Sales Email Tracking": "Die Erfassung und Verarbeitung von Events in HubSpot Sales, inklusive E-Mail-Öffnungen und -Klicks.",
-        "CTA Delivery": "Die Darstellung von auf Webseiten, Landing-Pages und andernorts eingebundenen CTAs.",
-        "Form Submission Processing":  "Die Erfassung und Verarbeitung von Formulareinsendungen zur Erstellung oder Erweiterung von Kontaktdaten.",
-        "Analytics Event Processing": "Die Verarbeitung von Analytics-Events, um sie darzustellen oder in Berichten zu nutzen.",
-        "Email Delivery": "Die Zustellung von E-Mails, die an Kontakte oder Listten von HubSpot-Kunden versandt wurden.",
-        "Salesforce Sync": "Die Synchronisierung von Kontaktdaten zwischen HubSpot und Salesforce.",
-        "Social Media Engagement": "Tracking und Veröffentlichen von Social-Media-Updates.",
-        "Mobile": "Mobile HubSpot-App für iOS und Android",
-        "HubSpot CRM": "Alle Bildschirme und Komponenten der HubSpot-CRM-Anwendung.",
-        "HubSpot Sales": "Eine Reihe von Anwendungen zur Beschleunigung des Vertriebsprozesses.",
-        "CMS Content Delivery": "Das Darstellen von Website-Seiten, Landing-Pages, Blogs und E-Mails für alle sämtliche Kundenwebsites, die auf dem HubSpot CMS gehostet werden.",
-        "Form Delivery": "Die Darstellung von Formularen auf Webseiten, Landing-Pages und andernorts.",
-        "Analytics Event Collection": "Die Erfassung von Analytics-Events, inklusive Seitenaufrufen, E-Mail-Öffnungen, Klicks usw.",
-        "List Segmentation": "Die Aktualisierung von Listen in der Listen-Anwendung der HubSpot Marketing-Software",
-        "Email Engagement Tracking": "Analytics zu Öffnungs- und Klickraten für E-Mails, die mit HubSpot versandt werden.",
-        "Workflows Processing": "Anmeldungen und das Ausführen bestimmter Schritte mit Workflows in HubSpot.",
-        "Conversations": "Die Verarbeitung und Zustellung von Nachrichten an den Conversation-Posteingang"
+        "HubSpot Marketing Application": "All of the screens and components for the HubSpot Marketing app, also known as app.hubspot.com.",
+        "HubSpot APIs": "The HubSpot APIs include connections to Contacts, Analytics, Workflows, Reports, Forms, and more.",
+        "Sales Email Tracking": "The collection and processing of Sidekick events, including opens and clicks.",
+        "CTA Delivery": "The rendering of CTAs embedded on site pages, landing pages, and elsewhere.",
+        "Form Submission Processing":  "The gathering and processing of form submissions into new contact records.",
+        "Analytics Event Processing": "The processing of analytics events for display and reporting.",
+        "Email Delivery": "The delivery of email sent to the contacts and lists of HubSpot customers.",
+        "Salesforce Sync": "The syncing of contact records between HubSpot and Salesforce.",
+        "Social Media Engagement": "The tracking and publishing of social media updates.",
+        "Mobile": "HubSpot's mobile application on iOS and Android",
+        "HubSpot CRM": "All of the screens and components for the HubSpot CRM application.",
+        "HubSpot Sales": "Suite of sales acceleration tools",
+        "CMS Content Delivery": "The rendering of site pages, landing pages, blogs, and email for all CMS-hosted customer websites.",
+        "Form Delivery": "The rendering of forms on site pages, landing pages, and elsewhere.",
+        "Analytics Event Collection": "The gathering of analytics events, including page views, opens, clicks, and more.",
+        "Contact Lists": "The updating of lists in the Lists marketing tool.",
+        "Email Engagement Tracking": "The open and click tracking analytics collection for emails sent via HubSpot.",
+        "Workflows Processing": "The enrollment and execution of steps in HubSpot workflows.",
+        "Conversations": "The processing and delivery of messages to the Conversations Inbox"
     }
 
     for rawComponent in rawComponents:
         name = rawComponent.select(".name")[0].text.strip()
-        description = componentDescription[name]
+        description = componentDescription.get(name)
         verbalStatus = rawComponent.select(".component-status")[0].text.strip()
         status = convertHubspotComponentStatus(verbalStatus)
         groupID = groupIDs[providerName]
@@ -66,7 +74,8 @@ def getComponents():
             'provider': provider
         }
 
-        components.append(component)
+        if isRelevantComponent(providerName, component):
+            components.append(component)
 
     return components
 
@@ -76,6 +85,7 @@ def getComponents():
 
 
 # Incidents Scrapper ---------------------------------------------------------------------
+@incidentsGetterWrapper(providerName)
 def getIncidents():
     incidents = []
 
@@ -91,7 +101,8 @@ def getIncidents():
         providerCreatedAt = updates[0]['date']
         verbalStatus = updates[-1]['verbalStatus']
         status = updates[-1]['status']
-        verbalComponents = scrapHubspotComponents(parsedIncidentPage.select(".components-affected")[0].text.strip())
+        verbalComponentsString = parsedIncidentPage.select(".components-affected")[0].text.strip() if parsedIncidentPage.select(".components-affected") else None
+        verbalComponents = scrapHubspotComponents(verbalComponentsString)
         componentID = convertHubspotComponents(verbalComponents)
         componentStatus = convertHubspotComponentStatus(description, status)
         # locations = 
@@ -114,7 +125,9 @@ def getIncidents():
             'link': link
         }
 
-        incidents.append(incident)
+        if isRelevantIncident(providerName, incident):
+            setIncidentMarker(incident)
+            incidents.append(incident)
 
     return incidents
 
@@ -141,7 +154,10 @@ def scrapIncidentUpdates(parsedIncidentPage):
         dateMatch = re.search(r"(?P<month>.{3}) (?P<day>[\d]{2}), (?P<year>[\d]{4}) - (?P<hour>[\d]{2}):(?P<minute>[\d]{2}) EDT",
                                                 update.select(".update-timestamp")[0].text)
         date = convertIncidentDate(dateMatch)
-        info = update.select(".update-body")[0].text.encode("utf-8")
+        if debug:
+            info = update.select(".update-body")[0].text.encode("utf-8")
+        else:
+            info = update.select(".update-body")[0].text
         message = buildIncidentUpdateMessage(date, verbalStatus, info)
 
         updates.append({
@@ -191,50 +207,17 @@ def convertIncidentDate(dateMatch):
                                                          minute=time.minute)
 
 def scrapHubspotComponents(text):
+    if text == None:
+        return None
     text = text[24:-1]
     text = text.replace("and ", "")
     return text
 
 
-# Maintenances Scrapper --------------------------------------------------------------
-def getMaintenances():
-    # We are not interested in maintenances right now.
-    pass
-    # maintenances = []
-
-    # ####### General Scrapping Logic
-    # rawMaintenances = 
-    # #######
-
-    # for rawMaintenance in rawMaintenances:
-    #     ######### Individual Scrapping Logic
-    #     name = 
-    #     message = 
-    #     scheduledAt = 
-    #     completedAt = 
-    #     components = 
-    #     locations = 
-    #     #########
-
-    #     maintenance = {
-    #         'name': name,
-    #         'message': message,
-    #         'scheduled_at': scheduledAt,
-    #         'completed_at': completedAt,
-    #         'components': components,
-    #         'locations': locations,
-    #     }
-    #     maintenances.append(maintenance)
-
-    # return maintenances
-
-
-# Maintenances Helper Functions --------------------------------------------------------------
-# Nothing yet.
-
-
 # General Helper Functions ----------------------------------------------------------
 def convertHubspotComponents(verbalComponents):
+    if verbalComponents == None:
+        return None
     componentIDs = getCachetComponents("group: {component: id}")
 
     if verbalComponents.find(",") != -1:
@@ -304,4 +287,5 @@ if __name__ == '__main__':
     pprint(getComponents())
     print("-----------------Incidents-------------------")
     pprint(getIncidents())
-
+    # print("-----------------Maintenances----------------")
+    # pprint(getMaintenances())
