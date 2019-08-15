@@ -14,8 +14,8 @@ from lib.internals.utilities.verification import verifyAdapters
 
 
 # Presteps
-## This is needed in order to make it possible to specify the imported adapter from the command line.
-## If it is not specified on the command line if will take the configured one in configs.py as default.
+## This is needed in order to make it possible to specify the tested adapter from the command line.
+## If it is not specified on the command line it will take the configured one in configs.py as default.
 if len(argv) == 2:
     adapter = argv[1]
 else:

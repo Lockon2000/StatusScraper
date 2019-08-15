@@ -1,96 +1,149 @@
-from sys import exc_info
-from traceback import print_tb
 from functools import wraps
 
-from configs import logFile
-from lib.utilities.tools import log
-from lib.utilities.filtering import isRelevantComponent
-from lib.utilities.filtering import isRelevantIncident
-from lib.utilities.hashing import setIncidentMarker
+from lib.internals.utilities.filtering import isRelevantComponent
+from lib.internals.utilities.filtering import isRelevantIncident
+from lib.internals.structures.exceptions import IrrelevantComponent
+from lib.internals.structures.exceptions import IrrelevantIncident
+from lib.internals.utilities.adapterHelpers import readFormatedGroups
+from lib.internals.utilities.adapterHelpers import readFormatedComponents
+from lib.internals.utilities.adapterHelpers import readFormatedIncidents
+from lib.internals.structures.dicts import germanComponentVerbalStatuses
+from lib.internals.structures.dicts import englishComponentVerbalStatuses
+from lib.internals.structures.dicts import germanIncidentVerbalStatuses
+from lib.internals.structures.dicts import englishIncidentVerbalStatuses
+from lib.internals.utilities.incidentIdentification import buildIncidentHash
+from lib.internals.utilities.incidentIdentification import setIncidentMarker
+from lib.internals.structures.enums import IncidentStatus
+from lib.internals.utilities.bodyFormatting import constructIncidentBody
+from lib.internals.utilities.bodyFormatting import constructIncidentUpdateBody
 
 
-# Global options
-debug = False
+# Global variables and steps
+groupIDs = readFormatedGroups("group: ID")
+componentIDs = readFormatedComponents("group: {component: ID}")
+incidentIDs = readFormatedIncidents("hashValue: ID")
 
 
-def componentsGetterWrapper(providerName):
-    def decorator(func):
-        @wraps(func)
+def scrapeComponentWrapper(providerModule):
+    def decorator(scrapeFunction):
+        @wraps(scrapeFunction)
         def wrapper():
+            # Try to scrape the component from the provider
             try:
-                interimResults = func()
+                interimResult = scrapeFunction()
             except Exception as e:
-                exceptionType, exception, traceback = exc_info()
-                log("Error", "Gathering components of \"{providerName}\" failed! Exception {name}: {description}".format(
-                                                                            providerName=providerName,
-                                                                            name=exceptionType.__name__,
-                                                                            description=exception
-                                                                        )
-                )
-                with open(logFile, "a") as file:
-                    print_tb(traceback, file=file)
-                    print("\n")
                 raise e
 
-            results = [
-                component
-                for component in interimResults
-                if isRelevantComponent(component)
-            ]
+            # Check if this component should be filtred
+            if not isRelevantComponent(providerModule.providerName, interimResult):
+                raise IrrelevantComponent(interimResult)
+            
+            # Complete needed data according to the specification
+            group = providerModule.providerName     # The group name is equal to the configured provider name
+            provider = providerModule.providerName
+            name = interimResult["name"]
+            status = interimResult["status"]
+            ID = componentIDs.get(group).get(name)
+            verbalStatus = germanComponentVerbalStatuses.get(status)
+            description = providerModule.componentDescriptions.get(name)
+            groupID = groupIDs.get(group)
 
-            if results:
-                log("Success", "Components found at \"{providerName}\"! {components}".format(providerName=providerName,
-                                                                                      components=results
-                                                                                    )
-                )
-            else:
-                log("Info", "No Components at \"{providerName}\"".format(providerName=providerName))
+            completedComponent = {
+                'name': name,
+                'group': group,
+                'ID': ID,
+                'status': status,
+                'verbalStatus': verbalStatus,
+                'description': description,
+                'groupID': groupID,
+                'provider': provider
+            }
 
-            return results
+            return completedComponent
         return wrapper
     return decorator
 
-def incidentsGetterWrapper(providerName):
-    def decorator(func):
-        @wraps(func)
+def scrapeIncidentWrapper(providerModule):
+    def decorator(scrapeFunction):
+        @wraps(scrapeFunction)
         def wrapper():
+            # Try to scrape the incident from the provider
             try:
-                interimResults = func()
+                interimResult = scrapeFunction()
             except Exception as e:
-                exceptionType, exception, traceback = exc_info()
-                log("Error", "Gathering incidents of \"{providerName}\" failed! Exception {name}: {description}".format(
-                                                                            providerName=providerName,
-                                                                            name=exceptionType.__name__,
-                                                                            description=exception
-                                                                        )
-                )
-                with open(logFile, "a") as file:
-                    print_tb(traceback, file=file)
-                    print("\n")
                 raise e
 
-            results = [
-                setIncidentMarker(incident)
-                for incident in interimResults
-                if isRelevantIncident(incident)
-            ]
+            # Check if this incident should be filtred
+            if not isRelevantIncident(providerModule.providerName, interimResult):
+                raise IrrelevantIncident(interimResult)
+            
+            # First complete the incident updates in place
 
-            if results:
-                log("Success", "Incidents found at \"{providerName}\"! {incidents}".format(providerName=providerName,
-                                                                                    incidents=results
-                                                                                )
-                )
+            # Helper variables
+            incidentHashValue = buildIncidentHash(interimResult)
+            incidentID = incidentIDs.get(incidentHashValue)
+
+            for index, update in enumerate(interimResult['updates']):
+                try:
+                    incidentStatus = IncidentStatus(update['action'].value)
+                except ValueError:
+                    incidentStatus = interimResult['updates'][index-1]['incidentStatus']
+                body = constructIncidentUpdateBody(update)
+
+                update['incidentID'] = incidentID
+                update['incidentStatus'] = incidentStatus
+                update['body'] = body
+
+            
+            # Complete needed data according to the specification
+            provider = providerModule.providerName
+            language = providerModule.providerLanguage
+            title = interimResult['title']
+            updates = interimResult['updates']
+            components = interimResult['components']
+            componentStatuses = interimResult['componentStatuses']
+            link = interimResult['link']
+            locations = interimResult['locations']
+            ID = incidentID
+            hashValue = incidentHashValue
+            status = updates[-1]['incidentStatus']
+            if language == "de_DE":
+                verbalStatus = germanIncidentVerbalStatuses.get(status)
+                componentVerbalStatuses = list(map(lambda componentStatus: 
+                                                                germanComponentVerbalStatuses.get(componentStatus),
+                                                   componentStatuses))
             else:
-                log("Info", "No incidents at \"{providerName}\"".format(providerName=providerName))
+                verbalStatus = englishIncidentVerbalStatuses.get(status)
+                componentVerbalStatuses = list(map(lambda componentStatus: 
+                                                                englishComponentVerbalStatuses.get(componentStatus),
+                                                   componentStatuses))
+            body = constructIncidentBody(**locals())
+            creationDate = updates[0]['date']
+            lastUpdateDate = updates[-1]['date']
 
-            return results
+            completedIncident = {
+                'provider': provider,
+                'language': language,
+                'title': title,
+                'updates': updates,
+                'components': components,
+                'componentStatuses': componentStatuses,
+                'link': link,
+                'locations': locations,
+                'ID': ID,
+                'hashValue': hashValue,
+                'status': status,
+                'verbalStatus': verbalStatus,
+                'componentVerbalStatuses': componentVerbalStatuses,
+                'body': body,
+                'creationDate': creationDate,
+                'lastUpdateDate': lastUpdateDate
+            }
+
+            # Embed the marker in the incident
+            setIncidentMarker(completedIncident)
+
+            return completedIncident
         return wrapper
     return decorator
 
-
-if __name__ == '__main__':
-    # Test module
-    from pprint import pprint
-    debug = True
-
-    pprint("No Tests yet!")

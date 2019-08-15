@@ -17,7 +17,7 @@ returned with the following keys:
     - Existence: guaranteed - The implementor of the provider must guarantee its existence. Everyone can use this info
                  without checking for its existence first.
     - Description: Holds a list with all the updates of the incident represented by dicts.
-- `'componentNames'`:
+- `'components'`:
     - Type: `list.string` or `NoneType`
     - Inclusion: Mandatory
     - Existence: guaranteed - The implementor of the provider must guarantee its existence. Everyone can use this info
@@ -58,10 +58,10 @@ returned with the following keys:
 - `'date'`:
     - Type: `datetime.datetime`
     - Description: The time when this update was published.
-- `'rawBody'`:
+- `'info'`:
     - Type: `string`
-    - Description: The actuall information supllied by the status site in this update. (Notice that even if the very
+    - Description: The actuall information supplied by the status site in this update. (Notice that even if the very
                    first update isn't treated by all status sites as an update, we will standardize this and treat even
                    the information supplied at the creation of the incidnet as an update. If there is no obvious status
-                   tied to this first update then we will give it a default of IncidentStatus.Investigating)
+                   tied to this first update then we will give it a default of `IncidentStatus.Investigating`)
 

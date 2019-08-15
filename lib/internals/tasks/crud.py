@@ -14,7 +14,7 @@ def CRUD(providers):
     ensureAutomatedGroups(scrapedGroups)
 
     # Step 2:
-    # Now we sync the automated components. Components are automated if theire provider is enabled and
+    # Now we sync the automated components. Components are automated if their provider is enabled and
     # they are not filtered and also if they are not configured as manual components to be ignored by
     # the scraper. We only care for the existence of the components, not their status. So no
     # stauts updates are made. If a component is newly created it will be created with the status 

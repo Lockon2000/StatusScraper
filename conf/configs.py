@@ -7,8 +7,7 @@ errorLogFile = "error.log"
 logLevel = "Normal"
 
 enabledProviders = [
-    "nfon",
-    "domainfactory"
+    "nfon"
 ]
 
 manualComponents = [

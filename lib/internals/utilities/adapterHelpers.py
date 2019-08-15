@@ -1,3 +1,10 @@
+from lib.adapters import *
+from lib.internals.utilities.incidentIdentification import buildIncidentHash
+from lib.internals.utilities.bodyFormatting import deconstructIncidentBody
+
+def reconstructIncident(incident):
+    incident.update(deconstructIncidentBody(incident['body']))
+
 # This function first makes a call to the status site to retriev all groups then formats them
 # according to the requested format and returns them.
 def readFormatedGroups(form="group: ID"):
@@ -8,28 +15,28 @@ def readFormatedGroups(form="group: ID"):
     #   failed: Will raise a requests.HTTPError exception or raise a ValueError exception.
 
     # Read the groups from the status site with the guaranteed pieces of information
-    interimResult = readGroups()
+    interimResults = readGroups()
 
     # Decide according to the supplied format which format to return
     if form == "group: ID":
         result = {
             group['name']: group['ID']
-            for group in interimResult
+            for group in interimResults
         }
     elif form == "ID: group":
         result = {
             group['ID']: group['name']
-            for group in interimResult
+            for group in interimResults
         }
     elif form == "group: False":
         result = {
             group['name']: False
-            for group in interimResult
+            for group in interimResults
         }
     elif form == "list":
         result = [
             group['name']
-            for group in interimResult
+            for group in interimResults
         ]
     else:
         raise ValueError("'{form}' is not a valid format".format(form=form))
@@ -47,7 +54,7 @@ def readFormatedComponents(form="group: {component: ID}", caseSensitivity=True):
     #   failed: Will raise a requests.HTTPError exception or raise a ValueError exception.
 
     # Read the components from the status site with the guaranteed pieces of information
-    interimResult = readComponents()
+    interimResults = readComponents()
 
     # Decide according to the supplied format which format to build
     groups = readFormatedGroups("ID: group")
@@ -56,40 +63,40 @@ def readFormatedComponents(form="group: {component: ID}", caseSensitivity=True):
         for groupID, group in groups.items():
             result[group] = {
                 component['name']: component['ID']
-                for component in interimResult
+                for component in interimResults
                 if groupID == component['groupID']
             }
     elif form == "group: {component: False}":
         for groupID, group in groups.items():
             result[group] = {
                 component['name']: False
-                for component in interimResult
+                for component in interimResults
                 if groupID == component['groupID']
             }
     elif form == "groupID: {component: ID}":
         for groupID, group in groups.items():
             result[groupID] = {
                 component['name']: component['ID']
-                for component in interimResult
+                for component in interimResults
                 if groupID == component['groupID']
             }
     elif form == "groupID: {component: False}":
         for groupID, group in groups.items():
             result[groupID] = {
                 component['name']: False
-                for component in interimResult
+                for component in interimResults
                 if groupID == component['groupID']
             }
     elif form == "ID: status":
         result = {
             component['ID']: component['status']
-            for component in interimResult
+            for component in interimResults
         }
     elif form == "group: components list":
         for groupID, group in groups.items():
             result[group] = [
                 component['name']
-                for component in interimResult
+                for component in interimResults
                 if groupID == component['groupID']
             ]
     else:       # The requested format dosen't match any provided format
@@ -111,26 +118,31 @@ def readFormatedComponents(form="group: {component: ID}", caseSensitivity=True):
 
 # This function first makes a call to the status site to retriev all incidents then formats them
 # according to the requested format and returns them.
-def readFormatedIncidents(form="hash: ID"):
+def readFormatedIncidents(form="hashValue: ID"):
     # Input:
-    #   form: A string with the needed format. Note: 'hash' here means the unique hash of the incident identifying it.
+    #   form: A string with the needed format. Note: 'hashValue' here means the unique hashValue of the incident
+    #         identifying it.
     # Output:
     #   succeeded: Will return a dict with the incidents in the requested format.
     #   failed: Will raise a requests.HTTPError exception or raise a ValueError exception.
 
     # Read the incidents from the status site with the guaranteed pieces of information
-    interimResult = readIncidents()
+    interimResults = readIncidents()
+    
+    # Reconstruct the incidents to the extent possible as the additional information is needed to construct the result.
+    for interimResult in interimResults:
+        reconstructIncident(interimResult)
 
     # Decide according to the supplied format which format to build
-    if form == "hash: ID":
+    if form == "hashValue: ID":
         result = {
-            hashIncident(incident): incident['id']
-            for incident in response.json()['data']
+            buildIncidentHash(incident): incident['ID']
+            for incident in interimResults
         }
     elif form == "ID: status":
         result = {
-            incident['id']: incident['status']
-            for incident in response.json()['data']
+            incident['ID']: incident['status']
+            for incident in interimResults
         }
     else:
         raise ValueError("'{form}' is not a valid format".format(form=form))

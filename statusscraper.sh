@@ -3,8 +3,7 @@
 # Scriptname:           statusscraper.sh
 # Author:               Mohamed Abdelwahab
 # Email:                mabdelwahab@dtad.de
-# Last Changes:         17.07.2019
-# Short-Description:    scrape external status pages and fill cachet via API
+# Last Changes:         14.08.2019
 ### END SCRIPT INFO
 
 

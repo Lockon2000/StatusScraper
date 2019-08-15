@@ -215,9 +215,13 @@ def scrapCloudFlareComponents(text):
     serviceComponents = matches.group(1) if matches else None
     matches = re.search(r"Europe", text)
     if matches:
-        return serviceComponents+", Europe"
+        if serviceComponents:
+            return serviceComponents+", Europe"
+        else:
+            return "Europe"
     else:
-        return serviceComponents
+        if serviceComponents:
+            return serviceComponents
 
 
 # General Helper Functions ----------------------------------------------------------

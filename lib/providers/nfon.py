@@ -2,8 +2,10 @@ from datetime import datetime
 from calendar import month_name
 from re import search
 from itertools import chain
+from locale import setlocale
+from locale import LC_ALL
 
-from lib.internals.utilities.providerHelpers import getThenParse
+from lib.internals.utilities.providerTools import getWebpageThenParse
 from lib.internals.structures.enums import ComponentStatus
 from lib.internals.structures.enums import IncidentStatus
 from lib.internals.structures.enums import IncidentUpdateAction
@@ -34,63 +36,89 @@ componentDescriptions = {
 
 # Global Variables and Steps -------------------------------------------------------------------------------------------
 
-parsedWebPage = getThenParse(statusPageURL)
+parsedWebpage = getWebpageThenParse(statusPageURL)
+# This is needed so that within this module the locale is set to the provider language as it is very probable
+# that language specific proccessing is needed, e.g. `calender.month_name`
+setlocale(LC_ALL, providerLanguage)
 
 
 #  Scraping  -----------------------------------------------------------------------------------------------------------
 
-# This function is responsible for scraping the components from the parsed web page and returns them in the rquired
-# format. It lies upon the implementor to make sure ONLY real components are returned and not also other objects
-# which may share its format on the provider status page. Further more no filtering should take place. This is handled
-# seperatly at another point in the program. The implementor should make sure ALL components are scraped.
-def scrapeComponents():
-    rawComponents = parsedWebPage.select(".component")
+# This function defines a list of scraping functions where every function scrapes one component and returns the required
+# information in the specified format. For more information see the docs under providers.
+# It lies upon the implementor to make sure ONLY real components are returned and not also other objects which may share
+# its format on the provider status page.
+# Further more no filtering should take place. This is handled seperatly at another point in the program. The
+# implementor should make sure ALL components are scraped.
+def getScrapeComponentFunctions():
+    rawComponents = parsedWebpage.select(".component")
     
-    components = []
+    functions = []
     for rawComponent in rawComponents:
-        # Helper variables
-        verbalStatus = rawComponent.select(".component-status")[0].text.strip()
+        # This wrapper is here to capture the current `rawComponent` so that the closure `scrapeComponent` can use it.
+        def wrapper(rawComponent):
+            # This is the function that actually scrapes the component.
+            def scrapeComponent():
+                # Helper variables
+                verbalStatus = rawComponent.select(".component-status")[0].text.strip()
 
-        name = rawComponent.select(".component_name")[0].text.strip()
-        status = convertComponentPlainStatus(verbalStatus)
+                name = rawComponent.select(".component_name")[0].text.strip()
+                status = convertComponentPlainStatus(verbalStatus)
 
-        components.append({
-            'name': name,
-            'status': status
-        })
+                component = {
+                    'name': name,
+                    'status': status
+                }
 
-    return components
+                return component
+            return scrapeComponent
 
-# This function scrapes the incidents from the parsed status web page and returns them in the required format.
-# It lies upon the implementor to make sure ONLY real incidents are returned and not also other objects
-# which may share its format on the provider status page. Further more no filtering should take place. This is handled
-# seperatly at another point in the program. The implementor should make sure ALL incidents are scraped.
-def scrapeIncidents():
+        functions.append(wrapper(rawComponent))
+
+    return functions
+
+# This function defines a list of scraping functions where every function scrapes one incident and returns the required
+# information in the specified format. For more information see the docs under providers.
+# It lies upon the implementor to make sure ONLY real incidents are returned and not also other objects which may share
+# its format on the provider status page.
+# Further more no filtering should take place. This is handled seperatly at another point in the program. The
+# implementor should make sure ALL incidents are scraped.
+def getScrapeIncidentFunctions():
     # The recent incidents are shown in two locations: the active incidents at the beginning of the page and
     # the history incidents at the end of the pages.
-    rawActiveIncidents = parsedWebPage.select("#section_incident_active .page_section")
-    rawHistoryIncidents = parsedWebPage.select("#section_main_history .incident")
+    rawActiveIncidents = parsedWebpage.select("#section_incident_active .page_section")
+    rawHistoryIncidents = parsedWebpage.select("#section_main_history .incident")
 
-    incidents = []
+    functions = []
     for rawIncident in chain(rawActiveIncidents, rawHistoryIncidents):
-        title = rawIncident.select(".panel-title a")[0].text.strip()
-        updates = scrapIncidentUpdates(rawIncident)
-        componentNames = rawIncident.select(".panel-body .row")[1].select(".event_inner_text")[0]. \
-                                                                                        text.strip().split(", ")
-        componentStatuses = scrapComponentStatusesFromIncident(rawIncident, len(componentNames))
-        link = statusPageURL + rawIncident.select(".panel-title a")[0]['href'].strip()
-        locations = rawIncident.select(".panel-body .row")[2].select(".event_inner_text")[0].text.strip().split(", ")
+        # This wrapper is here to capture the current `rawIncident` so that the closure `scrapeComponent` can use it.
+        def wrapper(rawIncident):
+            # This is the function that actually scrapes the incident.
+            def scrapeIncident():
+                title = rawIncident.select(".panel-title a")[0].text.strip()
+                updates = scrapIncidentUpdates(rawIncident)
+                componentNames = rawIncident.select(".panel-body .row")[1].select(".event_inner_text")[0]. \
+                                                                                                text.strip().split(", ")
+                componentStatuses = scrapComponentStatusesFromIncident(rawIncident, len(componentNames))
+                link = statusPageURL + rawIncident.select(".panel-title a")[0]['href'].strip()
+                locations = rawIncident.select(".panel-body .row")[2].select(".event_inner_text")[0]. \
+                                                                                                text.strip().split(", ")
 
-        incidents.append({
-            'title': title,
-            'updates': updates,
-            'componentNames': componentNames,
-            'componentStatuses': componentStatuses,
-            'link': link,
-            'locations': locations
-        })
+                incident = {
+                    'title': title,
+                    'updates': updates,
+                    'components': componentNames,
+                    'componentStatuses': componentStatuses,
+                    'link': link,
+                    'locations': locations
+                }
 
-    return incidents
+                return incident
+            return scrapeIncident
+
+        functions.append(wrapper(rawIncident))
+
+    return functions
 
 # This function converts the NFON specific component statuses to the generalized component status enum values
 def convertComponentPlainStatus(verbalStatus):
@@ -109,7 +137,8 @@ def convertComponentPlainStatus(verbalStatus):
 
     return status
 
-# This function scrapes the individual updates of the incidents and the returns the required information.
+# This function scrapes the individual updates of the incidents and the returns the required information.  For more 
+# information see the docs under providers.
 def scrapIncidentUpdates(rawIncident):
     updates = []
     for rawUpdate in rawIncident.select(".panel-body .row")[4:]:
@@ -121,12 +150,12 @@ def scrapIncidentUpdates(rawIncident):
 
         action = convertIncidentUpdatePlainAction(verbalAction)
         date = convertDate(dateRegEx)
-        rawBody = rawUpdate.select(".incident_message_details")[0].text.strip()
+        info = rawUpdate.select(".incident_message_details")[0].text.strip()
 
         updates.append({
             'action': action,
             'date': date,
-            'rawBody': rawBody
+            'info': info
         })
 
     return updates
