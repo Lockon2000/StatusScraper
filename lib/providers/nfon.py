@@ -16,8 +16,8 @@ from lib.internals.structures.enums import IncidentUpdateAction
 # Note: The provider name here will become the group name later, so make sure the formatting is as you want it
 # to appear on the status site.
 providerName = 'NFON'
-# Specifies the type of the provider, e.g. "E-Mail" or "Webpage"
-providerType = 'Webpage'
+# Specifies the type of the provider, e.g. "E-Mail" or "Website"
+providerType = 'Website'
 statusPageURL = "https://status.nfon.com"
 # This variable dictates the language of the incidents and it will be used to set the programmatically generated
 # strings (e.g. incident verbal statuses) with the correct language.

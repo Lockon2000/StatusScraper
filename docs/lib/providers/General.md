@@ -1,3 +1,25 @@
+# Configurations:
+- `providerName`:
+    - Type:
+    - Description:
+    - Required!
+- `providerType`:
+    - Type:
+    - Description:
+    - Required!
+- `statusPageURL`:
+    - Type:
+    - Description:
+    - Required!
+- `providerLanguage`:
+    - Type:
+    - Description:
+    - Required!
+- `componentDescriptions`:
+    - Type:
+    - Description:
+    - Required!
+
 # Decisions:
 
 1. It was decided to make individual scraping function for every object instead of one function for all objects so as

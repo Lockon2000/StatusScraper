@@ -1,0 +1,38 @@
+# Configurations:
+
+- `adapter`:
+    - Type:
+    - Description:
+    - Required!
+- `API`:
+    - Type:
+    - Description:
+    - Required!
+- `APIKey`:
+    - Type:
+    - Description:
+    - Required!
+- `logPath`:
+    - Type:
+    - Description:
+    - Required!
+- `mainLogFile`:
+    - Type:
+    - Description:
+    - Required!
+- `errorLogFile`:
+    - Type:
+    - Description:
+    - Required!
+- `logLevel`:
+    - Type:
+    - Description:
+    - Required!
+- `enabledProviders`:
+    - Type:
+    - Description:
+    - Required!
+- `manualComponents`:
+    - Type:
+    - Description:
+    - Required!
