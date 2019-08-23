@@ -1,10 +1,14 @@
 # Configurations:
 
 - `adapter`:
-    - Type:
-    - Description:
+    - Type: `string`
+    - Description: sets up which of the implemented adapters should be used.
+    - Rules: 
+        - Should be the name of a fully implemented adapter in the lib/adapters path.
+        - This adapter should have passed the module testing.
+        - Give the name like it is found in the lib/adapters (case sensitive).
     - Required!
-    - Example:
+    - Example: "cachet"
 - `API`:
     - Type:
     - Description:
@@ -20,7 +24,7 @@
     - Description:
     - Required!
     - Example:
-- `logFile`:
+- `logFiles`:
     - Type:
     - Description:
     - Required!

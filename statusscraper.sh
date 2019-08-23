@@ -30,6 +30,6 @@ echo -e "Started ($(date -d "@$startTime"))" >>$logDir/runs.log
 
 
 echo -e "Ended $(if [[ $? -eq 0 ]]; then echo "Normally"; else echo "Abnormally"; fi)" \
-        "($(date +"%X") - Execution Time (in sec.): $(bc <<< $(date +%s)-$startTime))" \
+        "($(date +"%X") - Execution Time (in sec.): $(bc <<< $(date +%s)-$startTime))\n" \
         "----------------------------------" >>$logDir/runs.log
 

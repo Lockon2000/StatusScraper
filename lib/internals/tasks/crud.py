@@ -4,7 +4,7 @@ from lib.utilities.hashing import hashIncident
 
 # The CRUD function is the main brain fo the Scraper. Here it actually gets the different scraped
 # information and then processes it and finally decides how to deal with it.
-def CRUD(providers):
+def crud(providers):
     # Step 1:
     # At the beginning we make sure all automated groups exist. A group is automated if it corresponds
     # to an enabled provider. If an automated group is missing we create it.
