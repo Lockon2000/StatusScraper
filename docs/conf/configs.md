@@ -4,35 +4,34 @@
     - Type:
     - Description:
     - Required!
+    - Example:
 - `API`:
     - Type:
     - Description:
     - Required!
+    - Example:
 - `APIKey`:
     - Type:
     - Description:
     - Required!
+    - Example:
 - `logPath`:
     - Type:
     - Description:
     - Required!
-- `mainLogFile`:
+    - Example:
+- `logFile`:
     - Type:
     - Description:
     - Required!
-- `errorLogFile`:
-    - Type:
-    - Description:
-    - Required!
-- `logLevel`:
-    - Type:
-    - Description:
-    - Required!
+    - Example:
 - `enabledProviders`:
     - Type:
     - Description:
     - Required!
+    - Example:
 - `manualComponents`:
     - Type:
     - Description:
     - Required!
+    - Example:

@@ -31,7 +31,7 @@ parser.add_argument("-V",
 parser.add_argument("operation",
                     metavar="<operation>",
                     choices=["get"],
-                    help="The operation to perform, currently only get")
+                    help="The operation to perform. Currently: [get]")
 parser.add_argument("configuration",
                     metavar="<configuration>",
                     help="The specific configuration to get")
@@ -43,7 +43,7 @@ parser.add_argument("configuration",
 args = parser.parse_args()
 
 cliToolPath = os.path.realpath(__file__)    # Including the tools name
-confDirPath = os.path.join(cliToolPath, "../../conf")
+confDirPath = os.path.abspath(os.path.join(cliToolPath, "../../conf"))
 confDirFiles = os.listdir(confDirPath)
 
 # Check whether there actually is a configs.py file
@@ -56,11 +56,15 @@ with open(os.path.join(confDirPath, "configs.py")) as configsFile:
     content = configsFile.read()
 
 # Get the setting requested and print it
-match = re.search(r"^{configuration}\s*=\s*(['\"\[\]\s\w\/.,]*)[ \t]*$".format(configuration=args.configuration),
+match = re.search(r"^{configuration}\s*=\s*(['\"\[\]\(\)\s\w\/.,]*)[ \t]*$".format(configuration=args.configuration),
                     content,
                     re.MULTILINE)
 if match:
-    print(re.sub(r"\B\s\B", "", match.group(1)))
+    # Clean result (no unnecessary white space and quotation marks)
+    result = match.group(1)
+    result = re.sub(r"\B\s\B", "", result)
+    result = re.sub(r"'|\"", "", result)
+    print(result)
 else:
     print("The requested configuration was not found")
 

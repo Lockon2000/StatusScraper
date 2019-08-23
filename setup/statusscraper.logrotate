@@ -1,0 +1,9 @@
+/srv/www/statusscraper/logs/*.log {
+  compress
+  delaycompress
+  create 644 root root
+  daily
+  rotate 7
+  missingok
+}
+

@@ -1,0 +1,2 @@
+# Execute statusscraper every minute
+* * * * *   root   /srv/www/statusscraper/statusscraper.sh
