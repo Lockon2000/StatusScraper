@@ -1,5 +1,5 @@
 adapter = "cachet"
-API = "http://cachet.workxl.de/api/v1"
+APIBaseURL = "http://cachet.workxl.de/api/v1"
 APIKey = "OapiYm8PxXHzYurppGHa"
 logPath = "logs/"
 logFiles = [
@@ -8,8 +8,7 @@ logFiles = [
     ("debug.log", "debug")
 ]
 enabledProviders = [
-    "nfon",
-    "domainfactory"
+    "nfon"
 ]
 manualComponents = [
     

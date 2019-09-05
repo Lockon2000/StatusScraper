@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-
 ### BEGIN SCRIPT INFO
 # Scriptname:           statusscraper-cli
 # Author:               Mohamed Abdelwahab
 # Email:                mabdelwahab@dtad.de
-# Last Changes:         22.08.2019
+# Last Changes:         30.08.2019
 # Description:          This is a command line tool to interact with StatusScraper's configuration
 ### END SCRIPT INFO
 
@@ -42,14 +41,13 @@ parser.add_argument("configuration",
 # Parse the cli arguments
 args = parser.parse_args()
 
-cliToolPath = os.path.realpath(__file__)    # Including the tools name
+cliToolPath = os.path.realpath(__file__)    # This path includes the name of this tool
 confDirPath = os.path.abspath(os.path.join(cliToolPath, "../../conf"))
-confDirFiles = os.listdir(confDirPath)
 
 # Check whether there actually is a configs.py file
-if "configs.py" not in confDirFiles:
-    print("Configuration file is missing")
-    sys.exit()
+if not os.path.isfile(os.path.join(confDirPath,"configs.py")):
+    print("Configuration file 'conf/configs.py' is missing!", file=sys.stderr)
+    sys.exit(1)
 
 # Get congigs.py content
 with open(os.path.join(confDirPath, "configs.py")) as configsFile:

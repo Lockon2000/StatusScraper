@@ -1,6 +1,7 @@
 from lib.adapters import *
 from lib.internals.utilities.incidentIdentification import buildIncidentHash
 from lib.internals.utilities.bodyFormatting import deconstructIncidentBody
+from lib.internals.structures.classes import CaseInsensitiveDict
 
 def reconstructIncident(incident):
     incident.update(deconstructIncidentBody(incident['body']))

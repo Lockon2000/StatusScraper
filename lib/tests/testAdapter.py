@@ -19,7 +19,7 @@ from lib.internals.utilities.verification import verifyAdapters
 if len(argv) == 2:
     adapter = argv[1]
 else:
-    from conf.configs import adapter
+    from lib.internals.utilities.configurationsInterface import adapter
 
 ## Verify all needed components for module testing
 ### We verify all configurations
@@ -27,12 +27,12 @@ verifyConfigurations()
 ### We only verify the adapter being tested right now
 verifyAdapters(adapter)
 
-## NOTE: We are manually importing the module here and not just importing the package adapters in order to have
+## NOTE: We are manually importing the module here and not just importing the package "adapters" in order to have
 ## control about which package we import. The adapters package ALWAYS imports the configured adapter, which is not
 ## always desired.
 ## Import the module of the configured adapter and make it accessible with the variable adapterModule
 adapterModule = import_module("lib.adapters."+adapter)
-## Make all attributes of adapterModule directly accessible (Simulation for from <module> import *)
+## Make all attributes of adapterModule directly accessible (Simulation for "from <module> import *")
 globals().update(
             {n: getattr(adapterModule, n) for n in adapterModule.__all__} if hasattr(adapterModule, '__all__') 
             else 

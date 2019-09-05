@@ -2,8 +2,8 @@ import json
 
 import requests
 
-from conf.configs import API
-from conf.configs import APIKey
+from lib.internals.utilities.configurationsInterface import APIBaseURL
+from lib.internals.utilities.configurationsInterface import APIKey
 from lib.internals.structures.enums import ComponentStatus
 
 
@@ -32,7 +32,7 @@ def createComponent(component):
     }
 
     # Make an authenticated post request to the appropriate end point to create the component
-    response = requests.post("{API}/components".format(API=API),
+    response = requests.post("{APIBaseURL}/components".format(APIBaseURL=APIBaseURL),
                              data=json.dumps(payload),
                              headers={
                                  'X-Cachet-Token': APIKey,
@@ -57,7 +57,8 @@ def readComponent(componentID):
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated get request to the appropriate end point to read the component
-    response = requests.get("{API}/components/{componentID}".format(API=API, componentID=componentID),
+    response = requests.get("{APIBaseURL}/components/{componentID}".format(APIBaseURL=APIBaseURL,
+                                                                           componentID=componentID),
                             headers={
                                 'X-Cachet-Token': APIKey,
                                 'Content-Type': "application/json"
@@ -87,7 +88,7 @@ def readComponents(form="group: {component: ID}", caseSensitivity=True):
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated get request to the appropriate end point to read all components
-    response = requests.get("{API}/components".format(API=API),
+    response = requests.get("{APIBaseURL}/components".format(APIBaseURL=APIBaseURL),
                             params={"per_page": objectsPerPage},
                             headers={
                                 'X-Cachet-Token': APIKey,
@@ -125,7 +126,8 @@ def updateComponent(componentID, componentStatus):
 
 
     # Make an authenticated get request to the appropriate end point to update the component
-    response = requests.put("{API}/components/{componentID}".format(API=API, componentID=componentID),
+    response = requests.put("{APIBaseURL}/components/{componentID}".format(APIBaseURL=APIBaseURL,
+                                                                           componentID=componentID),
                             data = json.dumps(payload),
                             headers = {
                                 'X-Cachet-Token': APIKey,
@@ -143,7 +145,8 @@ def deleteComponent(componentID):
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated delete request to the appropriate end point to delete the component
-    response = requests.delete("{API}/components/{componentID}".format(API=API, componentID=componentID),
+    response = requests.delete("{APIBaseURL}/components/{componentID}".format(APIBaseURL=APIBaseURL,
+                                                                              componentID=componentID),
                                headers={'X-Cachet-Token': APIKey})
     # Raise HTTPError for all unsuccessful status codes.
     response.raise_for_status()

@@ -3,10 +3,7 @@ from locale import LC_ALL
 from contextlib import closing
 
 from requests import get
-from requests import HTTPError
-from requests import Timeout
 from requests import packages
-from requests.structures import CaseInsensitiveDict     # Needed to enable case insensitive configuration
 
 from bs4 import BeautifulSoup
 

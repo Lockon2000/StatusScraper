@@ -1,8 +1,8 @@
 from os import path
 import logging
 
-from conf.configs import logPath
-from conf.configs import logFiles
+from lib.internals.utilities.configurationsInterface import logPath
+from lib.internals.utilities.configurationsInterface import logFiles
 
 
 # Global Settings:
@@ -14,19 +14,14 @@ dateFormat = "%d-%m-%y %H:%M:%S"
 
 # Create the logger
 logger = logging.getLogger(__name__)
-# Set the logger severity level (DEBUG in order to consider everything and filter at the handler level)
+# Set the logger severity level (logging.DEBUG in order to consider everything and filter at the handler level)
 logger.setLevel(logging.DEBUG)
 
 # For every configured log file create a handler with the configured severity level
 for logFile in logFiles:
+    # Consult configurationsInterface.md for more info about the `logFiles` variable.
     logHandler = logging.FileHandler(path.join(logPath, logFile[0]))
-    logLevel = {
-        "debug":    logging.DEBUG,
-        "info":     logging.INFO,
-        "warning":  logging.WARNING,
-        "error":    logging.ERROR,
-        "critical": logging.CRITICAL
-    }[logFile[1]]
+    logLevel = logFile[1]
     logHandler.setLevel(logLevel)
     logFormatter = logging.Formatter(fmt=logFormat, datefmt=dateFormat)
     logHandler.setFormatter(logFormatter)
@@ -36,4 +31,6 @@ for logFile in logFiles:
 
 # Interface:
 log = logger
+
+log.debug("Advanced logging has been established")
 

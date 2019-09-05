@@ -5,7 +5,7 @@ from itertools import chain
 from locale import setlocale
 from locale import LC_ALL
 
-from lib.internals.utilities.providerTools import getWebpageThenParse
+from lib.internals.utilities.providerHelpers import getWebpageThenParse
 from lib.internals.structures.enums import ComponentStatus
 from lib.internals.structures.enums import IncidentStatus
 from lib.internals.structures.enums import IncidentUpdateAction
@@ -39,7 +39,7 @@ componentDescriptions = {
 parsedWebpage = getWebpageThenParse(statusPageURL)
 # This is needed so that within this module the locale is set to the provider language as it is very probable
 # that language specific proccessing is needed, e.g. `calender.month_name`
-setlocale(LC_ALL, providerLanguage)
+setlocale(LC_ALL, providerLanguage+".utf8")
 
 
 #  Scraping  -----------------------------------------------------------------------------------------------------------

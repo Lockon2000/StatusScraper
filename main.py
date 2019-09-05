@@ -1,18 +1,30 @@
-from lib.internals.tasks.start import start
+from lib.internals.tasks.verify import verify
+# from lib.internals.tasks.extract import extract
 # from lib.internals.tasks.scrape import scrape
-# from lib.internals.tasks.crud import crud
-# from lib.internals.tasks.finish import finish
+# from lib.internals.tasks.sync import sync
+# from lib.internals.tasks.notify import notify
+# from lib.internals.tasks.prepare import prepare
+# from lib.internals.tasks.cleanup import cleanup
 
 
-# Make sure the ground work is set
-start()
+# Verify all modular program parts (configurations, adapters, providers)
+verify()
 
-# Scrape the needed data from the providers
-# data = scrape()
+# # Extract all different procedures from the providers
+# scrapingProcedures, preparationProcedures, cleanupProcedures = extract()
 
-# Synchronise the adapter
-# crud(data)
+# # Scrape the needed data from the providers
+# scrapedData = scrape(scrapingProcedures)
 
-# Conclude any remaining work
-# finish()
+# # Synchronise the adapter with the scraped data
+# events = sync(scrapedData)
+
+# # Notify about the events which happened while syncronising
+# notify(events)
+
+# # Prepare for the next run through
+# prepare(preparationProcedures)
+
+# # Cleanup all which needes to be cleaned
+# cleanup(cleanupProcedures)
 

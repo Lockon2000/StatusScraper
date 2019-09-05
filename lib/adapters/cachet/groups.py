@@ -1,8 +1,8 @@
 import json
 import requests
 
-from conf.configs import API
-from conf.configs import APIKey
+from lib.internals.utilities.configurationsInterface import APIBaseURL
+from lib.internals.utilities.configurationsInterface import APIKey
 
 
 # Global options
@@ -31,7 +31,7 @@ def createGroup(groupName):
     }
 
     # Make an authenticated post request to the appropriate end point to create the group
-    response = requests.post("{API}/components/groups".format(API=API),
+    response = requests.post("{APIBaseURL}/components/groups".format(APIBaseURL=APIBaseURL),
                              data=json.dumps(payload),
                              headers={
                                 'X-Cachet-Token': APIKey,
@@ -56,7 +56,7 @@ def readGroup(groupID):
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated get request to the appropriate end point to read the group
-    response = requests.get("{API}/components/groups/{groupID}".format(API=API, groupID=groupID),
+    response = requests.get("{APIBaseURL}/components/groups/{groupID}".format(APIBaseURL=APIBaseURL, groupID=groupID),
                             headers={
                                 'X-Cachet-Token': APIKey,
                                 'Content-Type': "application/json"
@@ -84,7 +84,7 @@ def readGroups():
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated get request to the appropriate end point to read all groups
-    response = requests.get("{API}/components/groups".format(API=API),
+    response = requests.get("{APIBaseURL}/components/groups".format(APIBaseURL=APIBaseURL),
                             params={"per_page": objectsPerPage},
                             headers={
                                 'X-Cachet-Token': APIKey,
@@ -114,7 +114,7 @@ def deleteGroup(groupID):
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated delete request to the appropriate end point to delete the group
-    response = requests.delete("{API}/components/groups/{ID}".format(API=API, ID=groupID),
+    response = requests.delete("{APIBaseURL}/components/groups/{ID}".format(APIBaseURL=APIBaseURL, ID=groupID),
                                headers={'X-Cachet-Token': APIKey})
     # Raise HTTPError for all unsuccessful status codes.
     response.raise_for_status()

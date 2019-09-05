@@ -2,8 +2,8 @@ import json
 
 import requests
 
-from conf.configs import API
-from conf.configs import APIKey
+from lib.internals.utilities.configurationsInterface import APIBaseURL
+from lib.internals.utilities.configurationsInterface import APIKey
 from lib.internals.structures.enums import IncidentStatus
 
 
@@ -35,7 +35,7 @@ def createIncident(incident):
     }
 
     # Make an authenticated post request to the appropriate end point to create the component
-    response = requests.post("{API}/incidents".format(API=API),
+    response = requests.post("{APIBaseURL}/incidents".format(APIBaseURL=APIBaseURL),
                              data=json.dumps(payload),
                              headers={
                                 'X-Cachet-Token': APIKey,
@@ -67,7 +67,8 @@ def createIncidentUpdate(incidentID, incidentUpdate):
     }
 
     # Make an authenticated post request to the appropriate end point to update the incident
-    response = requests.post("{API}/incidents/{incidentID}/updates".format(API=API, incidentID=incidentID),
+    response = requests.post("{APIBaseURL}/incidents/{incidentID}/updates".format(APIBaseURL=APIBaseURL,
+                                                                                  incidentID=incidentID),
                              data=json.dumps(payload),
                              headers={
                                 'X-Cachet-Token': APIKey,
@@ -87,7 +88,8 @@ def createIncidentUpdate(incidentID, incidentUpdate):
             }
 
             # Make an authenticated put request to the appropriate end point to update the incident
-            response = requests.put("{API}/incidents/{incidentID}".format(API=API, incidentID=incidentID),
+            response = requests.put("{APIBaseURL}/incidents/{incidentID}".format(APIBaseURL=APIBaseURL,
+                                                                                 incidentID=incidentID),
                                     data=json.dumps(payload),
                                     headers={
                                         'X-Cachet-Token': APIKey,
@@ -108,7 +110,7 @@ def readIncident(incidentID):
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated get request to the appropriate end point to read the incident
-    response = requests.get("{API}/incidents/{incidentID}".format(API=API, incidentID=incidentID),
+    response = requests.get("{APIBaseURL}/incidents/{incidentID}".format(APIBaseURL=APIBaseURL, incidentID=incidentID),
                             headers={
                                 'X-Cachet-Token': APIKey,
                                 'Content-Type': "application/json"
@@ -138,7 +140,7 @@ def readIncidents():
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated get request to the appropriate end point to read all incidents
-    response = requests.get("{API}/incidents".format(API=API),
+    response = requests.get("{APIBaseURL}/incidents".format(APIBaseURL=APIBaseURL),
                             params={"per_page": objectsPerPage},
                             headers={
                                 'X-Cachet-Token': APIKey,
@@ -172,8 +174,8 @@ def readIncidentUpdate(incidentID, incidentUpdateID):
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated get request to the appropriate end point to read the incident update
-    response = requests.get("{API}/incidents/{incidentID}/updates/{incidentUpdateID}".format(
-                                                                                    API=API,
+    response = requests.get("{APIBaseURL}/incidents/{incidentID}/updates/{incidentUpdateID}".format(
+                                                                                    APIBaseURL=APIBaseURL,
                                                                                     incidentID=incidentID,
                                                                                     incidentUpdateID=incidentUpdateID
                                                                                 ),
@@ -206,7 +208,8 @@ def readIncidentUpdates(incidentID):
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated get request to the appropriate end point to read all incident updates
-    response = requests.get("{API}/incidents/{incidentID}/updates".format(API=API, incidentID=incidentID),
+    response = requests.get("{APIBaseURL}/incidents/{incidentID}/updates".format(APIBaseURL=APIBaseURL,
+                                                                                 incidentID=incidentID),
                             params={"per_page": objectsPerPage},
                             headers={
                                 'X-Cachet-Token': APIKey,
@@ -242,7 +245,7 @@ def updateIncident(incidentID, incidentBody):
     }
 
     # Make an authenticated put request to the appropriate end point to update the incident
-    response = requests.put("{API}/incidents/{incidentID}".format(API=API, incidentID=incidentID),
+    response = requests.put("{APIBaseURL}/incidents/{incidentID}".format(APIBaseURL=APIBaseURL, incidentID=incidentID),
                              data=json.dumps(payload),
                              headers={
                                 'X-Cachet-Token': APIKey,
@@ -269,8 +272,8 @@ def updateIncidentUpdate(incidentID, incidentUpdate):
     }
 
     # Make an authenticated put request to the appropriate end point to update the incident update
-    response = requests.put("{API}/incidents/{incidentID}/updates/{incidentUpdateID}".format(
-                                                                              API=API,
+    response = requests.put("{APIBaseURL}/incidents/{incidentID}/updates/{incidentUpdateID}".format(
+                                                                              APIBaseURL=APIBaseURL,
                                                                               incidentID=incidentID, 
                                                                               incidentUpdateID=incidentUpdate['ID']
                                                                             ),
@@ -289,7 +292,8 @@ def updateIncidentUpdate(incidentID, incidentUpdate):
             }
 
             # Make an authenticated put request to the appropriate end point to update the incident
-            response = requests.put("{API}/incidents/{incidentID}".format(API=API, incidentID=incidentID),
+            response = requests.put("{APIBaseURL}/incidents/{incidentID}".format(APIBaseURL=APIBaseURL,
+                                                                                 incidentID=incidentID),
                                     data=json.dumps(payload),
                                     headers={
                                         'X-Cachet-Token': APIKey,
@@ -307,7 +311,7 @@ def deleteIncident(incidentID):
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated delete request to the appropriate end point to delete the incident
-    response = requests.delete("{API}/incidents/{ID}".format(API=API, ID=incidentID),
+    response = requests.delete("{APIBaseURL}/incidents/{ID}".format(APIBaseURL=APIBaseURL, ID=incidentID),
                                headers={'X-Cachet-Token': APIKey})
     # Raise HTTPError for all unsuccessful status codes.
     response.raise_for_status()
@@ -322,8 +326,8 @@ def deleteIncidentUpdate(incidentUpdateID, incidentID):
     #   failed: Will raise a requests.HTTPError exception.
 
     # Make an authenticated delete request to the appropriate end point to delete the incident update
-    response = requests.delete("{API}/incidents/{incidentID}/updates/{incidentUpdateID}".format(
-                                                                            API=API,
+    response = requests.delete("{APIBaseURL}/incidents/{incidentID}/updates/{incidentUpdateID}".format(
+                                                                            APIBaseURL=APIBaseURL,
                                                                             incidentID=incidentID, 
                                                                             incidentUpdateID=incidentUpdateID
                                                                         ),
