@@ -20,7 +20,7 @@ def verify():
     
     # At this point we have the neccesary information to setup the normal/advanced logging.
     from lib.internals.utilities.advancedLogging import log
-    log.debug("The configurations have been verified")
+    log.info("The configurations have been verified")
 
     from lib.internals.utilities.configurationsInterface import adapter
     from lib.internals.utilities.configurationsInterface import enabledProviders
@@ -31,9 +31,10 @@ def verify():
         log.critical("The integrity of the modular parts could not be established. The program will exit!")
         sys.exit(1)
     
-    log.debug("The configured adapter has been verified")
-    log.debug("The enabled providers have been verified")
+    log.info("The configured adapter has been verified")
+    log.info("The enabled providers have been verified")
     
     # All tests passed
     log.info("The integrity of the modular parts was established")
     return
+

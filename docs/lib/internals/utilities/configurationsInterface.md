@@ -6,7 +6,8 @@ This Documentation explains for Developers how to read the configurations in the
     - Type: `string`
     - Description: Holds the `adapter` configuration.
     - Properties:
-        - Will be all lower case. The casing is not preserved.
+        - Holds the names of a fully implemented adapter in the lib/adapters path.
+        - Will be all lower case, so The casing is not preserved.
     - Guaranteed!
 - `APIBaseURL`:
     - Type: `string`
@@ -46,8 +47,8 @@ This Documentation explains for Developers how to read the configurations in the
     - Type: `list.string`
     - Description: Holds the `enabledProviders` configuration.
     - Properties:
-        - Holds the name of a fully implemented provider in the lib/providers path.
-        - The name will be in lower case.
+        - Holds the names of fully implemented providers in the lib/providers path.
+        - The names will be in lower case.
     - Example: [
                    "nfon",
                    "domainfactory"

@@ -4,9 +4,9 @@ from lib.internals.utilities.filtering import isRelevantComponent
 from lib.internals.utilities.filtering import isRelevantIncident
 from lib.internals.structures.exceptions import IrrelevantComponent
 from lib.internals.structures.exceptions import IrrelevantIncident
-from lib.internals.utilities.adapterHelpers import readFormatedGroups
-from lib.internals.utilities.adapterHelpers import readFormatedComponents
-from lib.internals.utilities.adapterHelpers import readFormatedIncidents
+from lib.internals.utilities.adapterInterface import readFormatedGroups
+from lib.internals.utilities.adapterInterface import readFormatedComponents
+from lib.internals.utilities.adapterInterface import readFormatedIncidents
 from lib.internals.structures.dicts import germanComponentVerbalStatuses
 from lib.internals.structures.dicts import englishComponentVerbalStatuses
 from lib.internals.structures.dicts import germanIncidentVerbalStatuses
@@ -32,6 +32,7 @@ def scrapeComponentWrapper(providerModule):
             try:
                 interimResult = scrapeFunction()
             except Exception as e:
+                e.providerModule = providerModule
                 raise e
 
             # Check if this component should be filtred
@@ -71,6 +72,7 @@ def scrapeIncidentWrapper(providerModule):
             try:
                 interimResult = scrapeFunction()
             except Exception as e:
+                e.providerModule = providerModule
                 raise e
 
             # Check if this incident should be filtred

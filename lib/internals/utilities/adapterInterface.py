@@ -1,7 +1,21 @@
-from lib.adapters import *
+from importlib import import_module
+
+from lib.internals.utilities.configurationsInterface import adapter
 from lib.internals.utilities.incidentIdentification import buildIncidentHash
 from lib.internals.utilities.bodyFormatting import deconstructIncidentBody
 from lib.internals.structures.classes import CaseInsensitiveDict
+
+
+module = import_module("lib.adapters."+adapter)     # No error checking needed as the verification step ensures
+                                                    # everything is there
+
+# Make all attributes of module directly accessible (Simulation for "from <module> import *")
+globals().update(
+            {n: getattr(module, n) for n in module.__all__} if hasattr(module, '__all__') 
+            else 
+            {k: v for (k, v) in module.__dict__.items() if not k.startswith('_')}
+        )
+
 
 def reconstructIncident(incident):
     incident.update(deconstructIncidentBody(incident['body']))

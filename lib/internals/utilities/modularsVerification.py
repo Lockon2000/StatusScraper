@@ -83,7 +83,8 @@ def verifyConfigurations(*, log):
                 log.error("Faulty configurations: {name} has incorrect type!".format(name=configuration['name']))
                 return False
 
-    # All required configurations are present and have correct type.
+    # All required configurations are present and have correct type and all optional configurations have correct type
+    # if they are present.
     return True
 
 def verifyAdapter(adapter, *, log):

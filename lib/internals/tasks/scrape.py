@@ -1,22 +1,27 @@
-def scrape():
-    # Needed variables for the CRUD function:
-    providers = {
-        "modules":[
-            import_module("lib.providers."+provider.lower())      # lower cased providers to provide for
-            for provider in enabledProviders                      # case insensitve configuration
-        ]
-    }
+from lib.internals.utilities.advancedLogging import log
 
-    providers.update({
-        "componentFunctions": [
-            componentsGetterWrapper(module.providerName)(module.getComponents)
-            for module in providers["modules"]
-        ],
-        "incidentFunctions": [
-            incidentsGetterWrapper(module.providerName)(module.getIncidents)
-            for module in providers["modules"]
-        ]
-    })
 
-    return providers
+def scrape(scrapingProcedures):
+    data = {"components": [], "incidents": []}
 
+    for scrapeComponent in scrapingProcedures["components"]:
+        try:
+            component = scrapeComponent()
+        except Exception as e:
+            log.error("Couldn't scrape one of the components at {providerName}".format(
+                                                                    providerName=e.providerModule.providerName
+                                                                )
+                     )
+        data["components"].append(component)
+
+    for scrapeIncident in scrapingProcedures["incidents"]:
+        try:
+            incident = scrapeIncident()
+        except Exception as e:
+            log.error("Couldn't scrape one of the incidents at {providerName}".format(
+                                                                    providerName=e.providerModule.providerName
+                                                                )
+                     )
+        data["incidents"].append(incident)
+
+    return data

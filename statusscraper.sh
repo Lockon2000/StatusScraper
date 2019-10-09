@@ -15,11 +15,11 @@ startTime=$(date +%s)
 # Change current directory to the directory of this script, inhibit all output
 cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1
 
-# Make sure the ./logs directory is present for (at least) basic logging, if not create it
+# Make sure the ./logs directory is present for (at least) basic logging, if not, create it
 if [[ ! -d ./logs ]]; then
     mkdir ./logs
 
-    # Check whether the creation of the ./logs directory was successfull, if not then exit
+    # Check whether the creation of the ./logs directory was successfull, if not, then exit
     if [[ $? -ne 0 ]]; then
         1>&2 echo "Basic logging could not be ensured. Exiting program!"
         exit 1
