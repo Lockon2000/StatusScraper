@@ -3,7 +3,7 @@ scrapeIncidents to supply only the incidents to its caller.
 
 # Specification for Scraped Incidents
 
-After successfully scraping an incident from some providers status site, a dict representing the incident should
+After successfully scraping an incident from some providers status site, a dict representing the incident should be
 returned with the following keys:
 - `'title'`:
     - Type: `string`

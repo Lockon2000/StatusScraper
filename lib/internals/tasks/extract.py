@@ -1,26 +1,26 @@
 from importlib import import_module
 
 from lib.internals.utilities.configurationsInterface import enabledProviders
-from lib.internals.utilities.scraperWrappers import scrapeComponentWrapper
-from lib.internals.utilities.scraperWrappers import scrapeIncidentWrapper
+from lib.internals.utilities.scraperWrappers import scrapeComponentFunctionWrapper
+from lib.internals.utilities.scraperWrappers import scrapeIncidentFunctionWrapper
 
 
 def extract():
-    modules = [
+    providerModules = [
         import_module("lib.providers."+provider)
         for provider in enabledProviders
     ]
 
     scrapingProcedures = {
         "components": [
-            scrapeComponentWrapper(module)(scrapeComponentFunction)
-            for module in modules
-            for scrapeComponentFunction in module.getScrapeComponentFunctions()
+            scrapeComponentFunctionWrapper(providerModule)(scrapeComponentFunction)
+            for providerModule in providerModules
+            for scrapeComponentFunction in providerModule.getScrapeComponentFunctions()
         ],
         "incidents": [
-            scrapeIncidentWrapper(module)(scrapeIncidentFunction)
-            for module in modules
-            for scrapeIncidentFunction in module.getScrapeIncidentFunctions()
+            scrapeIncidentFunctionWrapper(providerModule)(scrapeIncidentFunction)
+            for providerModule in providerModules
+            for scrapeIncidentFunction in providerModule.getScrapeIncidentFunctions()
         ]
     }
 

@@ -24,7 +24,7 @@ componentIDs = readFormatedComponents("group: {component: ID}")
 incidentIDs = readFormatedIncidents("hashValue: ID")
 
 
-def scrapeComponentWrapper(providerModule):
+def scrapeComponentFunctionWrapper(providerModule):
     def decorator(scrapeFunction):
         @wraps(scrapeFunction)
         def wrapper():
@@ -37,7 +37,10 @@ def scrapeComponentWrapper(providerModule):
 
             # Check if this component should be filtred
             if not isRelevantComponent(providerModule.providerName, interimResult):
-                raise IrrelevantComponent(interimResult)
+                e = IrrelevantComponent()
+                e.providerModule = providerModule
+                e.component = interimResult
+                raise e
             
             # Complete needed data according to the specification
             group = providerModule.providerName     # The group name is equal to the configured provider name
@@ -64,7 +67,7 @@ def scrapeComponentWrapper(providerModule):
         return wrapper
     return decorator
 
-def scrapeIncidentWrapper(providerModule):
+def scrapeIncidentFunctionWrapper(providerModule):
     def decorator(scrapeFunction):
         @wraps(scrapeFunction)
         def wrapper():
@@ -77,7 +80,10 @@ def scrapeIncidentWrapper(providerModule):
 
             # Check if this incident should be filtred
             if not isRelevantIncident(providerModule.providerName, interimResult):
-                raise IrrelevantIncident(interimResult)
+                e = IrrelevantIncident()
+                e.providerModule = providerModule
+                e.incident = interimResult
+                raise e
             
             # First complete the incident updates in place
 

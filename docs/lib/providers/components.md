@@ -1,6 +1,6 @@
 # Specification for Scraped Components
 
-After successfully scraping a component from some providers status site, a dict representing the component should
+After successfully scraping a component from some providers status site, a dict representing the component should be
 returned with the following keys:
 - `'name'`:
     - Type: `string`

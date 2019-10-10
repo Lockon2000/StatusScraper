@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 
 # Global options
 packages.urllib3.disable_warnings()     # Disable all SSL/TLS certificate warnings
-setlocale(LC_ALL, "")                   # (((((Don't remember why I need this)))))
+setlocale(LC_ALL, "")                   # (((((Don't remember why we need this)))))
 
 
 def getWebpageThenParse(url, headers=None, cookies=None):
